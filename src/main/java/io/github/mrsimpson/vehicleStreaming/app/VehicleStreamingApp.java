@@ -42,7 +42,17 @@ public class VehicleStreamingApp {
 
         countStream.addSink(this.countSink);
 
-
+        /* I'd actually like to be able to inject a local DataStreamSource as well, but ... types don't matchx
+        DataStreamSource<VehicleEvent> vehicleEvents = env.fromElements(
+                new VehicleEvent("1", 8.6819631,50.1107767),
+                new VehicleEvent("2", 8.6833854,50.1109276),
+                new VehicleEvent("1", 8.6849040,50.1108864),
+                new VehicleEvent("1", 8.6849575,50.1102760),
+                new VehicleEvent("2", 8.6835459,50.1099743),
+                new VehicleEvent("1", 8.6817064,50.1090964)
+        );
+        VehicleStreamingApp app = new VehicleStreamingApp(env, vehicleEvents, new PrintSinkFunction<Tuple2<String, Integer>>());
+        */
         this.env.execute("Vechile Events processing");
     }
 
