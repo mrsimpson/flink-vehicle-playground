@@ -18,7 +18,7 @@ public class VehicleProcessingJob {
 		// set up the streaming execution environment
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		RichParallelSourceFunction<VehicleEvent> events = new VehicleEventsGenerator(3, 1000);
+		RichParallelSourceFunction<VehicleEvent> events = new VehicleEventsGenerator(1, 1000);
 
 		// Set up the application based on the context (sources and sinks)
 		VehicleStreamingPipeline app = new VehicleStreamingPipeline(env, events, new PrintSinkFunction<>());

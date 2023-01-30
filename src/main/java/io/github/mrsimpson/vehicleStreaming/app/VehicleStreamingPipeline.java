@@ -28,6 +28,8 @@ public class VehicleStreamingPipeline {
                 .addSource(this.vehicleEvents)
                 .setParallelism(1);
 
+        stream.print();
+
         KeyedStream<VehicleEvent, String> eventsByVehicle = stream.keyBy(v -> v.id);
 
         DataStream<org.apache.flink.api.java.tuple.Tuple2<String, Integer>> countStream = eventsByVehicle
