@@ -23,9 +23,6 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
 
     private static final double ONE_HUNDRED_M = 0.0008993;
 
-    VehicleEventsGenerator() {
-    }
-
     public VehicleEventsGenerator(int fleetSize, int frequency) {
         this.fleetSize = fleetSize;
         this.frequency = frequency;
@@ -64,8 +61,8 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
             for (int i = 0; i < fleetSize; i++) {
 
                 //determine a new location
-                lats[i] += rand.nextGaussian() * ONE_HUNDRED_M;
-                longs[i] += rand.nextGaussian() * ONE_HUNDRED_M;
+                lats[i] += (rand.nextGaussian() - 0.5) * ONE_HUNDRED_M;
+                longs[i] += (rand.nextGaussian() - 0.5) * ONE_HUNDRED_M;
                 // emit reading
                 srcCtx.collect(new VehicleEvent(vehicleIds[i], lats[i], longs[i]));
             }
