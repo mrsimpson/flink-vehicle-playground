@@ -13,7 +13,7 @@ import org.junit.Test;
 import java.util.List;
 
 
-public class VehicleStreamingAppTest {
+public class VehicleStreamingPipelineTest {
 
     @Test
     public void e2e() throws Exception {
@@ -41,7 +41,7 @@ public class VehicleStreamingAppTest {
 
         Tuple2TestSinkFunction countSink = new Tuple2TestSinkFunction();
         countSink.clear();
-        VehicleStreamingApp app = new VehicleStreamingApp(env, events, countSink);
+        VehicleStreamingPipeline app = new VehicleStreamingPipeline(env, events, countSink);
 
         // Invoke function under test
         app.run();

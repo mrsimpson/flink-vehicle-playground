@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-public class VehicleProcessing {
+public class VehicleProcessingJob {
 
 	public static void main(String[] args) throws Exception {
 		Logger.getLogger("stdout").log(new LogRecord(Level.WARNING, "Läuft " + new Date()));
@@ -21,7 +21,7 @@ public class VehicleProcessing {
 		RichParallelSourceFunction<VehicleEvent> events = new VehicleEventsGenerator(3, 1000);
 
 		// Set up the application based on the context (sources and sinks)
-		VehicleStreamingApp app = new VehicleStreamingApp(env, events, new PrintSinkFunction<>());
+		VehicleStreamingPipeline app = new VehicleStreamingPipeline(env, events, new PrintSinkFunction<>());
 		app.run();
 	}
 }

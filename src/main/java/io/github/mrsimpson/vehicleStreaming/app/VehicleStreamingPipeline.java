@@ -10,13 +10,13 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
-public class VehicleStreamingApp {
+public class VehicleStreamingPipeline {
     private final StreamExecutionEnvironment env;
     private final RichParallelSourceFunction<VehicleEvent> vehicleEvents;
     private final SinkFunction<Tuple2<String, Integer>> countSink;
 
     // Constructor injection for basic Unit Testing Support
-    VehicleStreamingApp(StreamExecutionEnvironment env, RichParallelSourceFunction<VehicleEvent> vehicleEvents, SinkFunction<Tuple2<String, Integer>> countSink) {
+    VehicleStreamingPipeline(StreamExecutionEnvironment env, RichParallelSourceFunction<VehicleEvent> vehicleEvents, SinkFunction<Tuple2<String, Integer>> countSink) {
         this.env = env;
         this.vehicleEvents = vehicleEvents;
         this.countSink = countSink;
