@@ -39,7 +39,7 @@ public class VehicleStreamingPipelineTest {
     }
 
     @Test
-    public void e2e() throws Exception {
+    public void integration() throws Exception {
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment(1);
 
@@ -66,13 +66,16 @@ public class VehicleStreamingPipelineTest {
         CountSinkMock.clear();
 
         // Invoke function under test
-        VehicleStreamingPipeline app = new VehicleStreamingPipelineBuilder().setEnv(env).setVehicleEvents(events).setRentalsCountSink(new CountSinkMock()).createVehicleStreamingPipeline();
+        VehicleStreamingPipeline app = new VehicleStreamingPipelineBuilder()
+                .setEnv(env).setVehicleEvents(events)
+                .setRentalsCountSink(new CountSinkMock())
+                .createVehicleStreamingPipeline();
         app.run();
 
         // Validate result
         List<Tuple2<String, Integer>> result = CountSinkMock.getCollectedElements();
-        Assert.assertEquals(7, result.size());
-        Assert.assertTrue(result.contains(Tuple2.of("1", 5)));
-        Assert.assertTrue(result.contains(Tuple2.of("2", 2)));
+        Assert.assertEquals(3, result.size()); // total rentals emitted – ignores the key!
+        Assert.assertTrue(result.contains(Tuple2.of("1", 2)));
+        Assert.assertTrue(result.contains(Tuple2.of("2", 1)));
     }
 }

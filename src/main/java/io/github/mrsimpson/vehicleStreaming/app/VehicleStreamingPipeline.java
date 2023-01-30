@@ -1,5 +1,6 @@
 package io.github.mrsimpson.vehicleStreaming.app;
 
+import io.github.mrsimpson.vehicleStreaming.util.NullSink;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEventType;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -19,8 +20,8 @@ public class VehicleStreamingPipeline {
     VehicleStreamingPipeline(StreamExecutionEnvironment env, RichParallelSourceFunction<VehicleEvent> vehicleEvents, SinkFunction<Tuple2<String, Integer>> rentalsCountSink, SinkFunction<Tuple2<String, Integer>> returnsCountSink) {
         this.env = env;
         this.vehicleEvents = vehicleEvents;
-        this.rentalsCountSink = rentalsCountSink;
-        this.returnsCountSink = returnsCountSink;
+        this.rentalsCountSink = (rentalsCountSink != null) ? rentalsCountSink : new NullSink<Tuple2<String, Integer>>();
+        this.returnsCountSink = (returnsCountSink != null) ? returnsCountSink : new NullSink<Tuple2<String, Integer>>();
     }
 
     public void run() throws Exception {
