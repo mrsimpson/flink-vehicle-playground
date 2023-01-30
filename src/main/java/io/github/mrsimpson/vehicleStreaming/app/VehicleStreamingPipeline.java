@@ -39,6 +39,14 @@ public class VehicleStreamingPipeline {
         rentalsCountStream
                 .addSink(this.rentalsCountSink);
 
+        DataStream<org.apache.flink.api.java.tuple.Tuple2<String, Integer>> returnsCountStream =
+                stream
+                        .filter(v -> v.type == VehicleEventType.TRIP_END)
+                        .keyBy(v -> v.id).process(new CountFunction());
+
+        returnsCountStream
+                .addSink(this.returnsCountSink);
+
         this.env.execute("Vehicle Events processing");
     }
 }

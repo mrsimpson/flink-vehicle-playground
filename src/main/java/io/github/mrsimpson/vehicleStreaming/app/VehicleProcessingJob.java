@@ -25,7 +25,8 @@ public class VehicleProcessingJob {
         VehicleStreamingPipeline app = new VehicleStreamingPipelineBuilder()
                 .setEnv(env)
                 .setVehicleEvents(events)
-                .setRentalsCountSink(new PrintSinkFunction<>())
+                .setRentalsCountSink(new PrintSinkFunction<>("Rentals", false))
+                .setReturnsCountSink(new PrintSinkFunction<>("Returns", false))
                 .createVehicleStreamingPipeline();
 
         app.run();
