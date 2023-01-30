@@ -3,7 +3,6 @@ package io.github.mrsimpson.vehicleStreaming.app;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEventType;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleStateType;
-import org.apache.commons.collections.list.SynchronizedList;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
@@ -12,8 +11,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
 
 public class VehicleStreamingPipelineTest {
@@ -23,7 +22,8 @@ public class VehicleStreamingPipelineTest {
         // the buffer during the test needs to be static
         // @see https://anton-bakalets.medium.com/flink-job-unit-testing-df4f618d07a6
         // @see https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/datastream/testing/#testing-flink-jobs
-        private static final List<Tuple2<String, Integer>> collectedElements =  Collections.synchronizedList(new ArrayList<Tuple2<String, Integer>>());
+        private static final List<Tuple2<String, Integer>> collectedElements = Collections.synchronizedList(new ArrayList<>());
+
         @Override
         public void invoke(Tuple2<String, Integer> value, Context context) {
             collectedElements.add(value);
@@ -33,10 +33,11 @@ public class VehicleStreamingPipelineTest {
             return collectedElements;
         }
 
-        public static void clear(){
+        public static void clear() {
             collectedElements.clear();
         }
     }
+
     @Test
     public void e2e() throws Exception {
 
@@ -61,8 +62,11 @@ public class VehicleStreamingPipelineTest {
             }
         };
 
+        // Set up mocks
+        CountSinkMock.clear();
+
         // Invoke function under test
-        VehicleStreamingPipeline app = new VehicleStreamingPipeline(env, events, new CountSinkMock());
+        VehicleStreamingPipeline app = new VehicleStreamingPipelineBuilder().setEnv(env).setVehicleEvents(events).setRentalsCountSink(new CountSinkMock()).createVehicleStreamingPipeline();
         app.run();
 
         // Validate result
