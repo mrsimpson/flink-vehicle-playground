@@ -7,11 +7,15 @@ public class VehicleEvent {
     public long ts;
     public double latitude;
     public double longitude;
+    public VehicleEventType type;
+    public VehicleStateType newState;
 
-    public VehicleEvent(String id, double latitude, double longitude){
+    public VehicleEvent(String id, double latitude, double longitude, VehicleEventType type, VehicleStateType newState) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.type = type;
+        this.newState = newState;
         this.ts = Calendar.getInstance().getTimeInMillis();
     }
 

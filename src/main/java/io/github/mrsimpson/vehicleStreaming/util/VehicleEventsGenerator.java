@@ -64,7 +64,7 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
                 lats[i] += (rand.nextGaussian() - 0.5) * ONE_HUNDRED_M;
                 longs[i] += (rand.nextGaussian() - 0.5) * ONE_HUNDRED_M;
                 // emit reading
-                srcCtx.collect(new VehicleEvent(vehicleIds[i], lats[i], longs[i]));
+                srcCtx.collect(new VehicleEvent(vehicleIds[i], lats[i], longs[i], VehicleEventType.LOCATED, VehicleStateType.AVAILABLE));
             }
 
             Thread.sleep(frequency);
