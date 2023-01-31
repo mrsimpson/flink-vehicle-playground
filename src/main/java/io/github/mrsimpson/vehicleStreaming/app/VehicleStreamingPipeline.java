@@ -27,9 +27,7 @@ public class VehicleStreamingPipeline {
     public void run() throws Exception {
 
         DataStreamSource<VehicleEvent> stream = this.env
-                .addSource(this.vehicleEvents)
-                .setParallelism(1);
-
+                .addSource(this.vehicleEvents);
         stream.print();
 
         DataStream<org.apache.flink.api.java.tuple.Tuple2<String, Integer>> rentalsCountStream =
