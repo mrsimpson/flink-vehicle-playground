@@ -70,12 +70,11 @@ public class VehicleStreamingPipelineTest {
                 .setEnv(env).setVehicleEvents(events)
                 .setRentalsCountSink(new CountSinkMock())
                 .createVehicleStreamingPipeline();
-        app.run();
+        app.run(1);
 
         // Validate result
         List<Tuple2<String, Integer>> result = CountSinkMock.getCollectedElements();
         Assert.assertEquals(3, result.size()); // total rentals emitted – ignores the key!
-        Assert.assertTrue(result.contains(Tuple2.of("1", 2)));
-        Assert.assertTrue(result.contains(Tuple2.of("2", 1)));
+        Assert.assertTrue(result.contains(Tuple2.of("provider_1", 3)));
     }
 }

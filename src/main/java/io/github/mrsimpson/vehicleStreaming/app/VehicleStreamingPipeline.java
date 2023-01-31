@@ -24,16 +24,17 @@ public class VehicleStreamingPipeline {
         this.returnsCountSink = (returnsCountSink != null) ? returnsCountSink : new NullSink<Tuple2<String, Integer>>();
     }
 
-    public void run() throws Exception {
+    public void run(int parallelism) throws Exception {
 
         DataStreamSource<VehicleEvent> stream = this.env
-                .addSource(this.vehicleEvents);
+                .addSource(this.vehicleEvents)
+                .setParallelism(parallelism);
         stream.print();
 
         DataStream<org.apache.flink.api.java.tuple.Tuple2<String, Integer>> rentalsCountStream =
                 stream
                         .filter(v -> v.type == VehicleEventType.TRIP_START)
-                        .keyBy(v -> v.id).process(new CountFunction());
+                        .keyBy(v -> v.provider).process(new CountFunction());
 
         rentalsCountStream
                 .addSink(this.rentalsCountSink);
@@ -41,7 +42,7 @@ public class VehicleStreamingPipeline {
         DataStream<org.apache.flink.api.java.tuple.Tuple2<String, Integer>> returnsCountStream =
                 stream
                         .filter(v -> v.type == VehicleEventType.TRIP_END)
-                        .keyBy(v -> v.id).process(new CountFunction());
+                        .keyBy(v -> v.provider).process(new CountFunction());
 
         returnsCountStream
                 .addSink(this.returnsCountSink);

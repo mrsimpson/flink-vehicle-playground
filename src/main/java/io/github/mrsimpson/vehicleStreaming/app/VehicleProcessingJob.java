@@ -29,6 +29,6 @@ public class VehicleProcessingJob {
                 .setReturnsCountSink(new PrintSinkFunction<>("Returns", false))
                 .createVehicleStreamingPipeline();
 
-        app.run();
+        app.run(2);
     }
 }

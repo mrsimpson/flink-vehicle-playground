@@ -28,7 +28,7 @@ public class VehicleEvent {
 
     @Override
     public String toString() {
-        return id + " emits " + type + ", is now " + newState + " at (" + latitude + "," + longitude + ")";
+        return id + " of " + provider + " emits " + type + ", is now " + newState + " at (" + latitude + "," + longitude + ")";
     }
 
 }
