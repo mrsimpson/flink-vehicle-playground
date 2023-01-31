@@ -18,7 +18,7 @@ import java.util.List;
 public class VehicleStreamingPipelineTest {
     private static class CountSinkMock implements SinkFunction<Tuple2<String, Integer>> {
 
-        // Since the Sink set up during th graph construction is another instance than the one used when running the job,
+        // Since the Sink set up during the graph construction is another instance than the one used when running the job,
         // the buffer during the test needs to be static
         // @see https://anton-bakalets.medium.com/flink-job-unit-testing-df4f618d07a6
         // @see https://nightlies.apache.org/flink/flink-docs-release-1.16/docs/dev/datastream/testing/#testing-flink-jobs

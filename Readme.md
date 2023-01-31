@@ -1,7 +1,7 @@
 # What's in this repo
 
 This repo is a sample of stream processing of geographical events (e. g. emitted by vehicles).
-It serves as playground for getting to lear using apache flink to perform streaming aggregations, 
+It serves as playground for getting to learn using apache flink to perform streaming aggregations, 
 sink results to configurable targets and observe how flink parallelizes execution and distributes state.
 
 # Development
@@ -15,7 +15,7 @@ sink results to configurable targets and observe how flink parallelizes executio
 
 - Buy the fantastic book by @fhueske [Stream Processing with Apache Flink](https://www.oreilly.com/library/view/stream-processing-with/9781491974285/)
 
-This has scaffolded using a generator
+This project has been scaffolded using a generator
 ```
 mvn archetype:generate                            \
    -DarchetypeGroupId=org.apache.flink            \
