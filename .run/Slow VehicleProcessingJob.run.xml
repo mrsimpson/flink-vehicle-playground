@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Slow VehicleProcessingJob" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="io.github.mrsimpson.vehicleStreaming.app.VehicleProcessingJob" />
+    <module name="flink-vehicle-playground" />
+    <option name="PROGRAM_PARAMETERS" value="1 2000" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

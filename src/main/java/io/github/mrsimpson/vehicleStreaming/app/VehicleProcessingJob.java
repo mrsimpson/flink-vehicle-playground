@@ -13,13 +13,41 @@ import java.util.logging.Logger;
 
 public class VehicleProcessingJob {
 
+    static int fleetSize = 1;
+    static int frequency = 1000;
+
+    static int parallelism = 1;
+
     public static void main(String[] args) throws Exception {
+        // configure Job based on arguments – poor man's cli
+        if (args.length > 0) {
+            int arg1 = Integer.parseInt(args[0]);
+            if (arg1 > 0) {
+                fleetSize = arg1;
+            }
+        }
+
+        if (args.length > 1) {
+            int arg2 = Integer.parseInt(args[1]);
+            if (arg2 > 0) {
+                frequency = arg2;
+            }
+        }
+
+        if (args.length > 2) {
+
+            int arg3 = Integer.parseInt(args[2]);
+            if (arg3 > 0) {
+                parallelism = arg3;
+            }
+        }
+
         Logger.getLogger("stdout").log(new LogRecord(Level.WARNING, "Läuft " + new Date()));
 
         // set up the streaming execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        RichParallelSourceFunction<VehicleEvent> events = new VehicleEventsGenerator(1, 1000);
+        RichParallelSourceFunction<VehicleEvent> events = new VehicleEventsGenerator(fleetSize, frequency);
 
         // Set up the application based on the context (sources and sinks)
         VehicleStreamingPipeline app = new VehicleStreamingPipelineBuilder()
@@ -29,6 +57,6 @@ public class VehicleProcessingJob {
                 .setReturnsCountSink(new PrintSinkFunction<>("Returns", false))
                 .createVehicleStreamingPipeline();
 
-        app.run(2);
+        app.run(parallelism);
     }
 }
