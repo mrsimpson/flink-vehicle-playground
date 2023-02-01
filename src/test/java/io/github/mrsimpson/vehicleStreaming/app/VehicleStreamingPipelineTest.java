@@ -45,13 +45,13 @@ public class VehicleStreamingPipelineTest {
         RichParallelSourceFunction<VehicleEvent> events = new RichParallelSourceFunction<VehicleEvent>() {
             @Override
             public void run(SourceContext<VehicleEvent> ctx) {
-                ctx.collect(new VehicleEvent("1", "provider_1", new Location(8.6819631, 50.1107767), VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP));
-                ctx.collect(new VehicleEvent("1", "provider_1", new Location(8.6849040, 50.1108864), VehicleEventType.TRIP_END, VehicleStateType.AVAILABLE));
-                ctx.collect(new VehicleEvent("1", "provider_1", new Location(8.6849040, 50.1108864), VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP));
-                ctx.collect(new VehicleEvent("2", "provider_1", new Location(8.6833854, 50.1109276), VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP));
-                ctx.collect(new VehicleEvent("1", "provider_1", new Location(8.6849575, 50.1102760), VehicleEventType.LOCATED, VehicleStateType.ON_TRIP));
-                ctx.collect(new VehicleEvent("2", "provider_1", new Location(8.6835459, 50.1099743), VehicleEventType.TRIP_END, VehicleStateType.AVAILABLE));
-                ctx.collect(new VehicleEvent("1", "provider_1", new Location(8.6817064, 50.1090964), VehicleEventType.TRIP_END, VehicleStateType.AVAILABLE));
+                ctx.collect(new VehicleEvent("1", "provider_1", TestLocations.A, VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP));
+                ctx.collect(new VehicleEvent("1", "provider_1", TestLocations.B, VehicleEventType.TRIP_END, VehicleStateType.AVAILABLE));
+                ctx.collect(new VehicleEvent("1", "provider_1", TestLocations.B, VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP));
+                ctx.collect(new VehicleEvent("2", "provider_1", TestLocations.A, VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP));
+                ctx.collect(new VehicleEvent("1", "provider_1", TestLocations.D, VehicleEventType.LOCATED, VehicleStateType.ON_TRIP));
+                ctx.collect(new VehicleEvent("2", "provider_1", TestLocations.C, VehicleEventType.TRIP_END, VehicleStateType.AVAILABLE));
+                ctx.collect(new VehicleEvent("1", "provider_1", TestLocations.E, VehicleEventType.TRIP_END, VehicleStateType.AVAILABLE));
             }
 
             @Override
