@@ -8,4 +8,10 @@ public class Location {
         this.latitude = latitude;
         this.longitude = longitude;
     }
+
+    public String toString() {
+        return "(" + latitude + "," + longitude + ")";
+    }
+
 }
+
