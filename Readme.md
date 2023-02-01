@@ -20,6 +20,6 @@ This project has been scaffolded using a generator
 mvn archetype:generate                            \
    -DarchetypeGroupId=org.apache.flink            \
    -DarchetypeArtifactId=flink-quickstart-java   \
-   -DarchetypeVersion=1.7.1                       \
+   -DarchetypeVersion=1.15.                       \
    -DinteractiveMode=true
 ```

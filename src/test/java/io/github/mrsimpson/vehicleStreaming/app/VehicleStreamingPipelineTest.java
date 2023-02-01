@@ -1,5 +1,6 @@
 package io.github.mrsimpson.vehicleStreaming.app;
 
+import io.github.mrsimpson.vehicleStreaming.util.NullSink;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEventType;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleStateType;
@@ -69,6 +70,7 @@ public class VehicleStreamingPipelineTest {
         VehicleStreamingPipeline app = new VehicleStreamingPipelineBuilder()
                 .setEnv(env).setVehicleEvents(events)
                 .setRentalsCountSink(new CountSinkMock())
+                .setRawVehicleEventsSink(new NullSink<>())
                 .createVehicleStreamingPipeline();
         app.run(1);
 

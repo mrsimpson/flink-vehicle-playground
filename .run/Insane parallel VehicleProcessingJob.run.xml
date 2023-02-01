@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Insane parallel VehicleProcessingJob" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="io.github.mrsimpson.vehicleStreaming.app.VehicleProcessingJob" />
-    <module name="flink-vehicle-playground" />
+    <module name="flink-vehicle-example" />
     <option name="PROGRAM_PARAMETERS" value="1000 10 10" />
     <method v="2">
       <option name="Make" enabled="true" />

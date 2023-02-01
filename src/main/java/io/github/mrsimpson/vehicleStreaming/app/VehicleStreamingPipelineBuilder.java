@@ -11,6 +11,7 @@ public class VehicleStreamingPipelineBuilder {
     private RichParallelSourceFunction<VehicleEvent> vehicleEvents;
     private SinkFunction<Tuple2<String, Integer>> rentalsCountSink;
     private SinkFunction<Tuple2<String, Integer>> returnsCountSink;
+    private SinkFunction<VehicleEvent> rawVehicleEventsSink;
 
     public VehicleStreamingPipelineBuilder setEnv(StreamExecutionEnvironment env) {
         this.env = env;
@@ -32,7 +33,12 @@ public class VehicleStreamingPipelineBuilder {
         return this;
     }
 
+    public VehicleStreamingPipelineBuilder setRawVehicleEventsSink(SinkFunction<VehicleEvent> rawVehicleEventsSink) {
+        this.rawVehicleEventsSink = rawVehicleEventsSink;
+        return this;
+    }
+
     public VehicleStreamingPipeline createVehicleStreamingPipeline() {
-        return new VehicleStreamingPipeline(env, vehicleEvents, rentalsCountSink, returnsCountSink);
+        return new VehicleStreamingPipeline(env, vehicleEvents, rentalsCountSink, returnsCountSink, rawVehicleEventsSink);
     }
 }
