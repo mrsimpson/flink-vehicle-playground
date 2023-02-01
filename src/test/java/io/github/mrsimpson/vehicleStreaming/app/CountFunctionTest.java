@@ -20,7 +20,9 @@ public class CountFunctionTest {
     public void countInitialEvent() throws Exception {
         CountFunction fut = new CountFunction();
         KeyedOneInputStreamOperatorTestHarness<String, VehicleEvent, Tuple2<String, Integer>> harness = ProcessFunctionTestHarnesses
-                .forKeyedProcessFunction(fut, vehicleEvent -> vehicleEvent.provider, Types.STRING);
+                .forKeyedProcessFunction(fut,
+                        vehicleEvent -> vehicleEvent.provider,
+                        Types.STRING);
 
         harness.processElement(new VehicleEvent("1",
                         "provider_1",
@@ -30,18 +32,20 @@ public class CountFunctionTest {
                         VehicleStateType.ON_TRIP),
                 1); // This would allow to test out-of-order processing
 
+        // asserting string equality is only a workaround for creating a deep Objects encapsulating StreamRecords
         Assert.assertEquals("[Record @ 1 : (provider_1,1)]", harness.getOutput().toString());
     }
 
     @Test
-    public void countMultipleEvents() throws Exception {
+    public void countMultipleProvidersEvents() throws Exception {
         CountFunction fut = new CountFunction();
         KeyedOneInputStreamOperatorTestHarness<String, VehicleEvent, Tuple2<String, Integer>> harness = ProcessFunctionTestHarnesses
                 .forKeyedProcessFunction(fut, vehicleEvent -> vehicleEvent.provider, Types.STRING);
 
+        harness.processElement(new VehicleEvent("2", "provider_1", 8.6819631, 50.1107767, VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP), 2);
+        harness.processElement(new VehicleEvent("3", "provider_2", 8.6819631, 50.1107767, VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP), 2);
         harness.processElement(new VehicleEvent("1", "provider_1", 8.6819631, 50.1107767, VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP), 1);
-        harness.processElement(new VehicleEvent("1", "provider_1", 8.6819631, 50.1107767, VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP), 2);
-        Assert.assertEquals("[Record @ 1 : (provider_1,1), Record @ 2 : (provider_1,2)]", harness.getOutput().toString());
 
+        Assert.assertEquals("[Record @ 2 : (provider_1,1), Record @ 2 : (provider_2,1), Record @ 1 : (provider_1,2)]", harness.getOutput().toString());
     }
 }
