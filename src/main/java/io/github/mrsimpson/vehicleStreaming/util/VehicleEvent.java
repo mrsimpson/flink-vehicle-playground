@@ -6,21 +6,18 @@ public class VehicleEvent {
     public String id;
     public long ts;
     public String provider;
-    public double latitude;
-    public double longitude;
+    public Location location;
     public VehicleEventType type;
     public VehicleStateType newState;
 
     public VehicleEvent(String id,
                         String provider,
-                        double latitude,
-                        double longitude,
+                        Location location,
                         VehicleEventType type,
                         VehicleStateType newState) {
         this.id = id;
         this.provider = provider;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.location = location;
         this.type = type;
         this.newState = newState;
         this.ts = Calendar.getInstance().getTimeInMillis();
@@ -28,7 +25,7 @@ public class VehicleEvent {
 
     @Override
     public String toString() {
-        return id + " of " + provider + " emits " + type + ", is now " + newState + " at (" + latitude + "," + longitude + ")";
+        return id + " of " + provider + " emits " + type + ", is now " + newState + " at (" + location.latitude + "," + location.longitude + ")";
     }
 
 }

@@ -114,8 +114,7 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
                 // emit reading
                 srcCtx.collect(new VehicleEvent(vehicleIds[i],
                         "provider_" + taskIdx,
-                        lats[i],
-                        longs[i],
+                        new Location(lats[i], longs[i]),
                         eventType,
                         state[i]));
             }
