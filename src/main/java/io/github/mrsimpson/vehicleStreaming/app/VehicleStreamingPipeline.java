@@ -48,7 +48,7 @@ public class VehicleStreamingPipeline {
         DataStreamSource<VehicleEvent> stream = this.env
                 .addSource(this.vehicleEvents)
                 .setParallelism(numberOfProviders);
-        stream.addSink(rawVehicleEventsSink);
+        stream.addSink(rawVehicleEventsSink).name("raw-vehicle-events");
 
         SingleOutputStreamOperator<Tuple2<String, Integer>> rentalsCountStream =
                 stream
@@ -58,7 +58,8 @@ public class VehicleStreamingPipeline {
                         .name("rentals-stream");
 
         rentalsCountStream
-                .addSink(this.rentalsCountSink);
+                .addSink(this.rentalsCountSink)
+                .name("rentals-count-sink");
 
         SingleOutputStreamOperator<Tuple2<String, Integer>> returnsCountStream =
                 stream
@@ -68,7 +69,8 @@ public class VehicleStreamingPipeline {
                         .name("returns-stream");
 
         returnsCountStream
-                .addSink(this.returnsCountSink);
+                .addSink(this.returnsCountSink)
+                .name("returns-count-sink");
 
         SingleOutputStreamOperator<Tuple2<String, Trip>> tripsStream =
                 stream
@@ -76,12 +78,15 @@ public class VehicleStreamingPipeline {
                         .process(new TripConstructorFunction())
                         .name("trips-stream");
 
-        tripsStream.addSink(this.tripSink);
+        tripsStream
+                .addSink(this.tripSink)
+                .name("trips-sink");
 
         // propagate errors from side output
         tripsStream
                 .getSideOutput(TripConstructorFunction.ERROR_OUTPUT_TAG)
-                .addSink(this.errorStreamSink);
+                .addSink(this.errorStreamSink)
+                .name("error-stream-sink");
 
         // Execute the pipeline
         this.env.execute("Vehicle Events processing");
