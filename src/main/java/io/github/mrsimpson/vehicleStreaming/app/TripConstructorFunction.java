@@ -9,8 +9,12 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
+import org.apache.flink.util.OutputTag;
+
 
 public class TripConstructorFunction extends KeyedProcessFunction<String, VehicleEvent, Tuple2<String, Trip>> {
+    public static final OutputTag<Error> ERROR_OUTPUT_TAG = new OutputTag<Error>("trips-errors"){};
+
     private transient ValueState<Trip> currentTrip;
 
     private Tracking trackingFromEvent(VehicleEvent vehicleEvent) {
@@ -23,7 +27,8 @@ public class TripConstructorFunction extends KeyedProcessFunction<String, Vehicl
         switch (vehicleEvent.type) {
             case TRIP_START:
                 if (trip != null) {
-                    throw new Exception("Trip start detected though a trip is still ongoing");
+                    ctx.output(ERROR_OUTPUT_TAG, new Error("Trip start detected though a trip is still ongoing"));
+                    return;
                 }
 
                 // construct a new trip and buffer it
@@ -35,7 +40,8 @@ public class TripConstructorFunction extends KeyedProcessFunction<String, Vehicl
                 break;
             case TRIP_END:
                 if (trip == null) {
-                    throw new Exception("Trip end detected though NO trip is ongoing");
+                    ctx.output(ERROR_OUTPUT_TAG, new Error("Trip end detected though NO trip is ongoing"));
+                    return;
                 }
 
                 // terminate the trip and reset the buffer

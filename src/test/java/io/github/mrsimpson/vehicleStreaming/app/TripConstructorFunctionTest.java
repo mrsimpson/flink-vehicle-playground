@@ -8,25 +8,26 @@ import org.apache.flink.streaming.api.operators.KeyedProcessOperator;
 import org.apache.flink.streaming.api.operators.OperatorSnapshotFinalizer;
 import org.apache.flink.streaming.util.KeyedOneInputStreamOperatorTestHarness;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
 
 public class TripConstructorFunctionTest {
 
     @Test
     public void detectNewTrip() throws Exception {
         TripConstructorFunction fut = new TripConstructorFunction();
-        KeyedOneInputStreamOperatorTestHarness<String, VehicleEvent, Tuple2<String, Trip>> harness = createHarness(fut);
-        harness.open();
+        KeyedOneInputStreamOperatorTestHarness<String, VehicleEvent, Tuple2<String, Trip>> testHarness = createHarness(fut);
+        testHarness.open();
 
         Date now = new Date();
-        harness.processElement(new VehicleEvent("1", now, "provider_1", TestLocations.A, VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP), 1);
-        Assert.assertEquals("[Record @ 1 : " + "(1,Trip of 1 started " + new Tracking(now, TestLocations.A) + " ongoing)]"
-                , harness.getOutput().toString());
+        testHarness.processElement(new VehicleEvent("1", now, "provider_1", TestLocations.A, VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP), 1);
+        assertEquals("[Record @ 1 : " + "(1,Trip of 1 started " + new Tracking(now, TestLocations.A) + " ongoing)]"
+                , testHarness.getOutput().toString());
 
-        harness.close();
+        testHarness.close();
     }
 
     @Test
@@ -49,10 +50,25 @@ public class TripConstructorFunctionTest {
         // perform the actual test
         Date now = new Date();
         testHarness.processElement(new VehicleEvent("1", now, "provider_1", TestLocations.B, VehicleEventType.TRIP_END, VehicleStateType.AVAILABLE), 2);
-        Assert.assertEquals("[Record @ 2 : " + "(1,Trip of 1 started " + new Tracking(startDate, TestLocations.A) + " --> " + new Tracking(startDate, TestLocations.B) + ")]"
+        assertEquals("[Record @ 2 : " + "(1,Trip of 1 started " + new Tracking(startDate, TestLocations.A) + " --> " + new Tracking(startDate, TestLocations.B) + ")]"
                 , testHarness.getOutput().toString());
 
         testHarness.close();
+    }
+
+    @Test
+    /*
+      processing a trip end event without prior started event shall lead to an exception
+      which is propagated to a side output
+     */
+    public void errorToSideOutput() throws Exception {
+        TripConstructorFunction fut = new TripConstructorFunction();
+        KeyedOneInputStreamOperatorTestHarness<String, VehicleEvent, Tuple2<String, Trip>> testHarness = createHarness(fut);
+        testHarness.open();
+
+        testHarness.processElement(new VehicleEvent("1", new Date(), "provider_1", TestLocations.B, VehicleEventType.TRIP_END, VehicleStateType.AVAILABLE), 2);
+
+        assertEquals(1, testHarness.getSideOutput(TripConstructorFunction.ERROR_OUTPUT_TAG).size());
     }
 
 
