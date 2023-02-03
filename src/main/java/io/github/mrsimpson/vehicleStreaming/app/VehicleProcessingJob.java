@@ -45,7 +45,7 @@ public class VehicleProcessingJob {
         Logger.getLogger("stdout").log(new LogRecord(Level.WARNING, "Läuft " + new Date()));
 
         // set up the streaming execution environment
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment().setParallelism(4);
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         RichParallelSourceFunction<VehicleEvent> events = new VehicleEventsGenerator(fleetSize, frequency);
 
