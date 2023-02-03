@@ -16,7 +16,7 @@ public class VehicleProcessingJob {
     static int fleetSize = 1;
     static int frequency = 1000;
 
-    static int parallelism = 1;
+    static int numberOfProviders = 1;
 
     public static void main(String[] args) throws Exception {
         // configure Job based on arguments – poor man's cli
@@ -38,14 +38,14 @@ public class VehicleProcessingJob {
 
             int arg3 = Integer.parseInt(args[2]);
             if (arg3 > 0) {
-                parallelism = arg3;
+                numberOfProviders = arg3;
             }
         }
 
         Logger.getLogger("stdout").log(new LogRecord(Level.WARNING, "Läuft " + new Date()));
 
         // set up the streaming execution environment
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment().setParallelism(4);
 
         RichParallelSourceFunction<VehicleEvent> events = new VehicleEventsGenerator(fleetSize, frequency);
 
@@ -58,6 +58,6 @@ public class VehicleProcessingJob {
                 .setTripSink(new PrintSinkFunction<>("Trips", false))
                 .createVehicleStreamingPipeline();
 
-        app.run(parallelism);
+        app.run(numberOfProviders);
     }
 }

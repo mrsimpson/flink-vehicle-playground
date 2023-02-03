@@ -43,11 +43,11 @@ public class VehicleStreamingPipeline {
         this.errorStreamSink = new PrintSinkFunction<>(true);
     }
 
-    public void run(int parallelism) throws Exception {
+    public void run(int numberOfProviders) throws Exception {
 
         DataStreamSource<VehicleEvent> stream = this.env
                 .addSource(this.vehicleEvents)
-                .setParallelism(parallelism);
+                .setParallelism(numberOfProviders);
         stream.addSink(rawVehicleEventsSink);
 
         SingleOutputStreamOperator<Tuple2<String, Integer>> rentalsCountStream =
