@@ -2,7 +2,7 @@
   <configuration default="false" name="Insane parallel VehicleProcessingJob" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="io.github.mrsimpson.vehicleStreaming.app.VehicleProcessingJob" />
     <module name="flink-vehicle-example" />
-    <option name="PROGRAM_PARAMETERS" value="1000 10 10" />
+    <option name="PROGRAM_PARAMETERS" value="--fleetsize=1000 --frequency=10 --providers=10" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

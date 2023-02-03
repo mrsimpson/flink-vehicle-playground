@@ -2,9 +2,11 @@ package io.github.mrsimpson.vehicleStreaming.app;
 
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEventsGenerator;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
+import org.apache.commons.cli.*;
 
 import java.util.Date;
 import java.util.logging.Level;
@@ -19,26 +21,32 @@ public class VehicleProcessingJob {
     static int numberOfProviders = 1;
 
     public static void main(String[] args) throws Exception {
-        // configure Job based on arguments – poor man's cli
-        if (args.length > 0) {
-            int arg1 = Integer.parseInt(args[0]);
-            if (arg1 > 0) {
-                fleetSize = arg1;
+        // configure Job based on arguments
+        Options options = new Options();
+        options.addOption("fs", "fleetsize", true, "Size of each provider's fleet");
+        options.addOption("fr", "frequency", true, "How fast shall 1min event time pass");
+        options.addOption("p","providers", true, "Number of provider");
+
+        CommandLineParser parser = new DefaultParser();
+        CommandLine cmd = parser.parse(options, args);
+
+        if (cmd.hasOption("fleetsize")) {
+            int fleetSizeArg = Integer.parseInt(cmd.getOptionValue("fleetsize"));
+            if (fleetSizeArg > 0) {
+                fleetSize = fleetSizeArg;
+            }
+        }
+        if (cmd.hasOption("frequency")) {
+            int frequencyArg = Integer.parseInt(cmd.getOptionValue("frequency"));
+            if (frequencyArg > 0) {
+                frequency = frequencyArg;
             }
         }
 
-        if (args.length > 1) {
-            int arg2 = Integer.parseInt(args[1]);
-            if (arg2 > 0) {
-                frequency = arg2;
-            }
-        }
-
-        if (args.length > 2) {
-
-            int arg3 = Integer.parseInt(args[2]);
-            if (arg3 > 0) {
-                numberOfProviders = arg3;
+        if (cmd.hasOption("providers")) {
+            int providersArg = Integer.parseInt(cmd.getOptionValue("providers"));
+            if (providersArg > 0) {
+                numberOfProviders = providersArg;
             }
         }
 
@@ -46,6 +54,7 @@ public class VehicleProcessingJob {
 
         // set up the streaming execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.getConfig().setGlobalJobParameters(ParameterTool.fromArgs(args));
 
         RichParallelSourceFunction<VehicleEvent> events = new VehicleEventsGenerator(fleetSize, frequency);
 

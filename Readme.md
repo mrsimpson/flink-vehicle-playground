@@ -8,8 +8,22 @@ sink results to configurable targets and observe how flink parallelizes executio
 
 ## Just run it
 
+### Within your  IDE
+
 - Use an [IntelliJ IDEA](https://www.jetbrains.com/de-de/idea/download/) (frankly, I ❤️ VSCode, but the dev ex with IDEA for Java is so much better. It just works.)
-- Check out this repo, open the `VehicleProcessing.java` file and run / debug it.
+- Check out this repo, open the `VehicleProcessingJob.java` file and run / debug it.
+
+### On you local cluster
+
+```bash
+mvn clean install package
+
+$FLINK_PATH/bin/flink run \
+  -c io.github.mrsimpson.vehicleStreaming.app.VehicleProcessingJob \
+  target/flink-vehicle-example-0.1.jar \
+  --fleetsize=1000  \
+  --frequency=500
+```
 
 ## Develop it
 

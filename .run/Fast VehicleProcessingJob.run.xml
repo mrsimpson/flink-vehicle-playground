@@ -2,7 +2,7 @@
   <configuration default="false" name="Fast VehicleProcessingJob" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="io.github.mrsimpson.vehicleStreaming.app.VehicleProcessingJob" />
     <module name="flink-vehicle-example" />
-    <option name="PROGRAM_PARAMETERS" value="2 50" />
+    <option name="PROGRAM_PARAMETERS" value="--fleetsize=2 --frequency=50" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
