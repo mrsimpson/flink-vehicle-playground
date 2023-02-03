@@ -10,7 +10,7 @@ public class Trip {
 
     private Boolean ongoing = true;
 
-    public ArrayList<Tracking> waypoints;
+    public ArrayList<Tracking> waypoints = new ArrayList<>();
 
     public Trip(String vehicleId, Tracking start) {
         this.vehicleId = vehicleId;

@@ -1,6 +1,7 @@
 package io.github.mrsimpson.vehicleStreaming.app;
 
 import io.github.mrsimpson.vehicleStreaming.util.NullSink;
+import io.github.mrsimpson.vehicleStreaming.util.Trip;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEventType;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -21,6 +22,7 @@ public class VehicleStreamingPipeline {
     private final RichParallelSourceFunction<VehicleEvent> vehicleEvents;
     private final SinkFunction<Tuple2<String, Integer>> rentalsCountSink;
     private final SinkFunction<Tuple2<String, Integer>> returnsCountSink;
+    private final SinkFunction<Tuple2<String, Trip>> tripSink;
 
     private final SinkFunction<VehicleEvent> rawVehicleEventsSink;
 
@@ -29,23 +31,25 @@ public class VehicleStreamingPipeline {
                              RichParallelSourceFunction<VehicleEvent> vehicleEvents,
                              SinkFunction<Tuple2<String, Integer>> rentalsCountSink,
                              SinkFunction<Tuple2<String, Integer>> returnsCountSink,
-                             SinkFunction<VehicleEvent> rawVehicleEventsSink
-                             ) {
+                             SinkFunction<Tuple2<String, Trip>> tripSink, SinkFunction<VehicleEvent> rawVehicleEventsSink
+    ) {
         this.env = env;
         this.vehicleEvents = vehicleEvents;
         this.rentalsCountSink = (rentalsCountSink != null) ? rentalsCountSink : new NullSink<>();
         this.returnsCountSink = (returnsCountSink != null) ? returnsCountSink : new NullSink<>();
+        this.tripSink = (tripSink != null) ? tripSink : new NullSink<>();
         this.rawVehicleEventsSink = (rawVehicleEventsSink != null) ? rawVehicleEventsSink : new PrintSinkFunction<>();
     }
 
     public void run(int parallelism) throws Exception {
+
 
         DataStreamSource<VehicleEvent> stream = this.env
                 .addSource(this.vehicleEvents)
                 .setParallelism(parallelism);
         stream.addSink(rawVehicleEventsSink);
 
-        DataStream<org.apache.flink.api.java.tuple.Tuple2<String, Integer>> rentalsCountStream =
+        DataStream<Tuple2<String, Integer>> rentalsCountStream =
                 stream
                         .filter(v -> v.type == VehicleEventType.TRIP_START)
                         .keyBy(v -> v.provider)
@@ -54,7 +58,7 @@ public class VehicleStreamingPipeline {
         rentalsCountStream
                 .addSink(this.rentalsCountSink);
 
-        DataStream<org.apache.flink.api.java.tuple.Tuple2<String, Integer>> returnsCountStream =
+        DataStream<Tuple2<String, Integer>> returnsCountStream =
                 stream
                         .filter(v -> v.type == VehicleEventType.TRIP_END)
                         .keyBy(v -> v.provider)
@@ -62,6 +66,13 @@ public class VehicleStreamingPipeline {
 
         returnsCountStream
                 .addSink(this.returnsCountSink);
+
+        DataStream<Tuple2<String, Trip>> tripsStream =
+                stream
+                        .keyBy(v -> v.id)
+                        .process(new TripConstructorFunction());
+
+        tripsStream.addSink(this.tripSink);
 
         // Execute the pipeline
         this.env.execute("Vehicle Events processing");

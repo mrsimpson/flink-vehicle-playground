@@ -99,7 +99,7 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
 
         while (running) {
 
-            // emit SensorReadings
+            // produce new vehicle events
             for (int i = 0; i < fleetSize; i++) {
 
                 // invoke state transition
@@ -111,7 +111,7 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
                 lats[i] += (rand.nextGaussian() - 0.5) * ONE_HUNDRED_M;
                 longs[i] += (rand.nextGaussian() - 0.5) * ONE_HUNDRED_M;
 
-                // emit reading
+                // emit the event
                 srcCtx.collect(new VehicleEvent(vehicleIds[i],
                         "provider_" + taskIdx,
                         new Location(lats[i], longs[i]),

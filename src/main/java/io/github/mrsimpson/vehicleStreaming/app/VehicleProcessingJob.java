@@ -55,6 +55,7 @@ public class VehicleProcessingJob {
                 .setVehicleEvents(events)
                 .setRentalsCountSink(new PrintSinkFunction<>("Rentals", false))
                 .setReturnsCountSink(new PrintSinkFunction<>("Returns", false))
+                .setTripSink(new PrintSinkFunction<>("Trips", false))
                 .createVehicleStreamingPipeline();
 
         app.run(parallelism);

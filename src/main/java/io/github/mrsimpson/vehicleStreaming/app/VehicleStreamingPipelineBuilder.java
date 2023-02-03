@@ -1,5 +1,6 @@
 package io.github.mrsimpson.vehicleStreaming.app;
 
+import io.github.mrsimpson.vehicleStreaming.util.Trip;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -12,6 +13,7 @@ public class VehicleStreamingPipelineBuilder {
     private SinkFunction<Tuple2<String, Integer>> rentalsCountSink;
     private SinkFunction<Tuple2<String, Integer>> returnsCountSink;
     private SinkFunction<VehicleEvent> rawVehicleEventsSink;
+    private SinkFunction<Tuple2<String, Trip>> tripSink;
 
     public VehicleStreamingPipelineBuilder setEnv(StreamExecutionEnvironment env) {
         this.env = env;
@@ -33,12 +35,17 @@ public class VehicleStreamingPipelineBuilder {
         return this;
     }
 
+    public VehicleStreamingPipelineBuilder setTripSink(SinkFunction<Tuple2<String, Trip>> tripSink) {
+        this.tripSink = tripSink;
+        return this;
+    }
+
     public VehicleStreamingPipelineBuilder setRawVehicleEventsSink(SinkFunction<VehicleEvent> rawVehicleEventsSink) {
         this.rawVehicleEventsSink = rawVehicleEventsSink;
         return this;
     }
 
     public VehicleStreamingPipeline createVehicleStreamingPipeline() {
-        return new VehicleStreamingPipeline(env, vehicleEvents, rentalsCountSink, returnsCountSink, rawVehicleEventsSink);
+        return new VehicleStreamingPipeline(env, vehicleEvents, rentalsCountSink, returnsCountSink, tripSink, rawVehicleEventsSink);
     }
 }
