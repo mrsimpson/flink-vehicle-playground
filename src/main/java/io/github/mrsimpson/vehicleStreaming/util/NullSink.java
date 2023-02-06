@@ -1,10 +1,27 @@
 package io.github.mrsimpson.vehicleStreaming.util;
 
-import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.api.connector.sink2.Sink;
+import org.apache.flink.api.connector.sink2.SinkWriter;
 
-public class NullSink<T> extends RichSinkFunction<T> {
+public class NullSink<T> implements Sink<T>{
+
     @Override
-    public void invoke(Object value, Context context){
-        // do nothing
+    public SinkWriter<T> createWriter(InitContext initContext) {
+        return new SinkWriter<>(){
+
+            @Override
+            public void write(Object o, Context context) {
+                // do nothing
+            }
+            @Override
+            public void close() {
+                // not here
+            }
+
+            @Override
+            public void flush(boolean b)  {
+                // not there
+            }
+        };
     }
 }

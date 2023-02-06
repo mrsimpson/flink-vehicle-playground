@@ -2,18 +2,18 @@ package io.github.mrsimpson.vehicleStreaming.app;
 
 import io.github.mrsimpson.vehicleStreaming.util.Trip;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
+import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
 public class VehicleStreamingPipelineBuilder {
     private StreamExecutionEnvironment env;
     private RichParallelSourceFunction<VehicleEvent> vehicleEvents;
-    private SinkFunction<Tuple2<String, Integer>> rentalsCountSink;
-    private SinkFunction<Tuple2<String, Integer>> returnsCountSink;
-    private SinkFunction<VehicleEvent> rawVehicleEventsSink;
-    private SinkFunction<Tuple2<String, Trip>> tripSink;
+    private Sink<Tuple2<String, Integer>> rentalsCountSink;
+    private Sink<Tuple2<String, Integer>> returnsCountSink;
+    private Sink<VehicleEvent> rawVehicleEventsSink;
+    private Sink<Tuple2<String, Trip>> tripSink;
 
     public VehicleStreamingPipelineBuilder setEnv(StreamExecutionEnvironment env) {
         this.env = env;
@@ -25,22 +25,22 @@ public class VehicleStreamingPipelineBuilder {
         return this;
     }
 
-    public VehicleStreamingPipelineBuilder setRentalsCountSink(SinkFunction<Tuple2<String, Integer>> rentalsCountSink) {
+    public VehicleStreamingPipelineBuilder setRentalsCountSink(Sink<Tuple2<String, Integer>> rentalsCountSink) {
         this.rentalsCountSink = rentalsCountSink;
         return this;
     }
 
-    public VehicleStreamingPipelineBuilder setReturnsCountSink(SinkFunction<Tuple2<String, Integer>> returnsCountSink) {
+    public VehicleStreamingPipelineBuilder setReturnsCountSink(Sink<Tuple2<String, Integer>> returnsCountSink) {
         this.returnsCountSink = returnsCountSink;
         return this;
     }
 
-    public VehicleStreamingPipelineBuilder setTripSink(SinkFunction<Tuple2<String, Trip>> tripSink) {
+    public VehicleStreamingPipelineBuilder setTripSink(Sink<Tuple2<String, Trip>> tripSink) {
         this.tripSink = tripSink;
         return this;
     }
 
-    public VehicleStreamingPipelineBuilder setRawVehicleEventsSink(SinkFunction<VehicleEvent> rawVehicleEventsSink) {
+    public VehicleStreamingPipelineBuilder setRawVehicleEventsSink(Sink<VehicleEvent> rawVehicleEventsSink) {
         this.rawVehicleEventsSink = rawVehicleEventsSink;
         return this;
     }

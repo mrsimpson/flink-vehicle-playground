@@ -62,7 +62,7 @@ Since the artifacts in this repo have been made configurable, this allows for pa
 4. Send it to the cluster (you need to specify a version explicitly)
 
     ```bash
-    FLINK_VERSION=v1_16|v1_15 envsubst < k8s/vehicle-processing.yaml | kubectl apply -f - 
+    FLINK_VERSION=v1_16 envsubst < k8s/vehicle-processing.yaml | kubectl apply --namespace=flink -f - 
     ```
    
 _CAUTION: When deleting the Flink deployment, don't delete the pod, but delete the CRD `flinkdeployment`. 
