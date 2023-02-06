@@ -53,7 +53,7 @@ public class VehicleStreamingPipeline {
                 .assignTimestampsAndWatermarks(
                         WatermarkStrategy
                             .forBoundedOutOfOrderness(Duration.ofMinutes(1))
-                                .withTimestampAssigner(new VehicleEventsTimestampAssignerSupplier())
+                                .withTimestampAssigner(new VehicleEventsTimestampAssigner())
                 );
 //                .assignTimestampsAndWatermarks(new VehicleEventsTimerAssigner()); // deprecated
         stream.addSink(rawVehicleEventsSink).name("raw-vehicle-events");
