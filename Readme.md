@@ -25,6 +25,49 @@ $FLINK_PATH/bin/flink run \
   --frequency=500
 ```
 
+### Using the [Flink Kubernetes Operator](https://github.com/apache/flink-kubernetes-operator)
+
+Your application will be defined using a CRD and deployed to your (local) K8S-cluster.
+In order to do this, we will package the flink application along with its job manager ("the flink framework"") into a docker image.
+Since the artifacts in this repo have been made configurable, this allows for packaging your flink app with multiple different Flink versions.
+
+1. Install the Flink K8S-operator as [described in the quickstart](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/docs/try-flink-kubernetes-operator/quick-start/)
+   `tl;dr:`
+   ```bash
+   kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
+   helm repo add flink-operator-repo https://downloads.apache.org/flink/flink-kubernetes-operator-1.3.1/
+   helm install flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator --namespace flink --create-namespace
+   ```
+2. Build and packages your app with maven as a shaed jar, optionally passing a Flink version:
+    ```bash
+    mvn clean install package
+   ``` 
+
+    or for a specific version
+
+   ```bash
+    mvn -Dflink.version=1.15.3 clean install package
+    ```
+3. Build a docker image referencing the `jar` just created:
+    ```bash
+   docker build -t flink-vehicle-example:latest .
+    ```
+    
+    or for a specific version
+    
+   ```bash
+   docker build -t flink-vehicle-example:latest --build-arg FLINK_VERSION=1.15.3 .
+    ```
+   
+4. Send it to the cluster (you need to specify a version explicitly)
+
+    ```bash
+    FLINK_VERSION=v1_16|v1_15 envsubst < k8s/vehicle-processing.yaml | kubectl apply -f - 
+    ```
+   
+_CAUTION: When deleting the Flink deployment, don't delete the pod, but delete the CRD `flinkdeployment`. 
+Else you might end up with a non-deletable CRD._
+
 ## Develop it
 
 - Buy the fantastic book by @fhueske [Stream Processing with Apache Flink](https://www.oreilly.com/library/view/stream-processing-with/9781491974285/)

@@ -1,0 +1,25 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: vehicle-example
+spec:
+  image: flink-vehicle-example:latest
+  imagePullPolicy: IfNotPresent
+  flinkVersion: $FLINK_VERSION
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "1"
+  serviceAccount: flink
+  jobManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+  taskManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+  job:
+    entryClass: io.github.mrsimpson.vehicleStreaming.app.VehicleProcessingJob
+    jarURI: local:///opt/flink/usrlib/flink-vehicle-example.jar
+    args: [ "--fleetsize=1000", "--frequency=500" ]
+    parallelism: 1
+    upgradeMode: stateless
