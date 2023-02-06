@@ -4,9 +4,8 @@ import io.github.mrsimpson.vehicleStreaming.util.NullSink;
 import io.github.mrsimpson.vehicleStreaming.util.Trip;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEventType;
-import org.apache.flink.api.common.eventtime.BoundedOutOfOrdernessWatermarks;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
@@ -48,11 +47,15 @@ public class VehicleStreamingPipeline {
 
     public void run(int numberOfProviders) throws Exception {
 
-        DataStream<VehicleEvent> stream = this.env
+        SingleOutputStreamOperator<VehicleEvent> stream = this.env
                 .addSource(this.vehicleEvents)
                 .setParallelism(numberOfProviders)
-//                .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessWatermarks<VehicleEvent>(Duration.ofMinutes(1)));
-                .assignTimestampsAndWatermarks(new VehicleEventsTimerAssigner()); // deprecated
+                .assignTimestampsAndWatermarks(
+                        WatermarkStrategy
+                            .forBoundedOutOfOrderness(Duration.ofMinutes(1))
+                                .withTimestampAssigner(new VehicleEventsTimestampAssignerSupplier())
+                );
+//                .assignTimestampsAndWatermarks(new VehicleEventsTimerAssigner()); // deprecated
         stream.addSink(rawVehicleEventsSink).name("raw-vehicle-events");
 
         SingleOutputStreamOperator<Tuple2<String, Integer>> rentalsCountStream =
