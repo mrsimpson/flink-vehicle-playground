@@ -4,20 +4,20 @@ import java.util.Date;
 
 public class VehicleEvent {
     public String id;
-    public Date eventDate;
+    public Date eventTime;
     public String provider;
     public Location location;
     public VehicleEventType type;
     public VehicleStateType newState;
 
     public VehicleEvent(String id,
-                        Date eventDate,
+                        Date eventTime,
                         String provider,
                         Location location,
                         VehicleEventType type,
                         VehicleStateType newState) {
         this.id = id;
-        this.eventDate = eventDate;
+        this.eventTime = eventTime;
         this.provider = provider;
         this.location = location;
         this.type = type;
@@ -34,7 +34,7 @@ public class VehicleEvent {
 
     @Override
     public String toString() {
-        return id + " of " + provider + " emits " + type + ", is now " + newState + " at " + location;
+        return "At " + eventTime + ", " + id + " of " + provider + " emits " + type + ", is now " + newState + " at " + location;
     }
 
 }

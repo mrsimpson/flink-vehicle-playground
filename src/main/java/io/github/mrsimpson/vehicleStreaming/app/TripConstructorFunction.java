@@ -13,12 +13,12 @@ import org.apache.flink.util.OutputTag;
 
 
 public class TripConstructorFunction extends KeyedProcessFunction<String, VehicleEvent, Tuple2<String, Trip>> {
-    public static final OutputTag<Error> ERROR_OUTPUT_TAG = new OutputTag<Error>("trips-errors"){};
+    public static final OutputTag<Error> ERROR_OUTPUT_TAG = new OutputTag<>("trips-errors"){};
 
     private transient ValueState<Trip> currentTrip;
 
     private Tracking trackingFromEvent(VehicleEvent vehicleEvent) {
-        return new Tracking(vehicleEvent.eventDate, vehicleEvent.location);
+        return new Tracking(vehicleEvent.eventTime, vehicleEvent.location);
     }
 
     @Override

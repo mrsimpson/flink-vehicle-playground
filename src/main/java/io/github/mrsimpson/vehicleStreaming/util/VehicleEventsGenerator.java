@@ -2,6 +2,7 @@ package io.github.mrsimpson.vehicleStreaming.util;
 
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
+import java.util.Date;
 import java.util.Random;
 
 /**
@@ -22,6 +23,7 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
     private int frequency = 1000;
 
     private static final double ONE_HUNDRED_M = 0.0008993;
+    private  static final long THIRTY_SECONDS = 30_000;
 
     public VehicleEventsGenerator(int fleetSize, int frequency) {
         this.fleetSize = fleetSize;
@@ -75,6 +77,10 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
         // initialize random number generator
         Random rand = new Random();
 
+        // Start with even time of now, adding 30s per interval.
+        // within this duration, each vehicle will move between 0 and sqrt(100^2 + 100^2) meters
+        Date eventTime = new Date();
+
         // look up index of this parallel task in order to produce unique IDs
         int taskIdx = this.getRuntimeContext().getIndexOfThisSubtask();
 
@@ -83,6 +89,8 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
         double[] lats = new double[fleetSize];
         double[] longs = new double[fleetSize];
         VehicleStateType[] state = new VehicleStateType[fleetSize];
+
+        // set up vehicles somewhere in Frankfurt
         for (int i = 0; i < fleetSize; i++) {
             vehicleIds[i] = "vehicle_" + (taskIdx * fleetSize + i);
             // define an area in which vehicles shall move
@@ -112,14 +120,18 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
                 longs[i] += (rand.nextGaussian() - 0.5) * ONE_HUNDRED_M;
 
                 // emit the event
-                srcCtx.collect(new VehicleEvent(vehicleIds[i],
+                srcCtx.collect(new VehicleEvent(
+                        vehicleIds[i],
+                        eventTime,
                         "provider_" + taskIdx,
                         new Location(lats[i], longs[i]),
                         eventType,
-                        state[i]));
+                        state[i])
+                );
             }
 
             Thread.sleep(frequency);
+            eventTime.setTime(eventTime.getTime() + THIRTY_SECONDS);
         }
     }
 
