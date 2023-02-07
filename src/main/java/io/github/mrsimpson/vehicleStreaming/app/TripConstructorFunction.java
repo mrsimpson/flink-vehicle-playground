@@ -23,7 +23,10 @@ public class TripConstructorFunction extends KeyedProcessFunction<String, Vehicl
 
     @Override
     public void processElement(VehicleEvent vehicleEvent, Context ctx, Collector<Tuple2<String, Trip>> out) throws Exception {
+
+        // as state, we need to remember the vehicle's current trip
         Trip trip = currentTrip.value();
+
         switch (vehicleEvent.type) {
             case TRIP_START:
                 if (trip != null) {

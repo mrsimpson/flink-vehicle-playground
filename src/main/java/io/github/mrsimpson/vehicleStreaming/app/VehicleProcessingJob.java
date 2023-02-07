@@ -3,12 +3,12 @@ package io.github.mrsimpson.vehicleStreaming.app;
 import io.github.mrsimpson.vehicleStreaming.util.StdOutSink;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEventsGenerator;
+import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
-import org.apache.flink.formats.json.JsonSerializationSchema;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.commons.cli.*;
@@ -33,10 +33,20 @@ public class VehicleProcessingJob {
                     .setBootstrapServers(kafkaUrl)
                     .setRecordSerializer(KafkaRecordSerializationSchema.builder()
                             .setTopic(identifier.toLowerCase())
-                            .setValueSerializationSchema(new JsonSerializationSchema<IN>())
+                            .setValueSerializationSchema(new SerializationSchema<IN>() {
+                                @Override
+                                public void open(InitializationContext context) throws Exception {
+                                    SerializationSchema.super.open(context);
+                                }
+
+                                @Override
+                                public byte[] serialize(IN in) {
+                                    return in.toString().getBytes();
+                                }
+                            })
                             .build()
                     )
-                    .setDeliveryGuarantee(DeliveryGuarantee.EXACTLY_ONCE)
+                    .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
                     .build();
         }
 

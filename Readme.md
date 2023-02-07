@@ -38,7 +38,7 @@ Since the artifacts in this repo have been made configurable, this allows for pa
    helm repo add flink-operator-repo https://downloads.apache.org/flink/flink-kubernetes-operator-1.3.1/
    helm install flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator --namespace flink --create-namespace
    ```
-2. Build and packages your app with maven as a shaed jar, optionally passing a Flink version:
+2. Build and packages your app with maven as a shaded jar, optionally passing a Flink version:
     ```bash
     mvn clean install package
    ``` 
