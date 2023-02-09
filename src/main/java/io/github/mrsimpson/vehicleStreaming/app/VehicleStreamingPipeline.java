@@ -21,7 +21,7 @@ public class VehicleStreamingPipeline {
     private final RichParallelSourceFunction<VehicleEvent> vehicleEvents;
     private final Sink<Tuple2<String, Integer>> rentalsCountSink;
     private final Sink<Tuple2<String, Integer>> returnsCountSink;
-    private final Sink<Tuple2<String, Trip>> tripSink;
+    private final Sink<TripTuple> tripSink;
 
     private final Sink<VehicleEvent> rawVehicleEventsSink;
     private final Sink<Error> errorStreamSink;
@@ -31,7 +31,7 @@ public class VehicleStreamingPipeline {
                              RichParallelSourceFunction<VehicleEvent> vehicleEvents,
                              Sink<Tuple2<String, Integer>> rentalsCountSink,
                              Sink<Tuple2<String, Integer>> returnsCountSink,
-                             Sink<Tuple2<String, Trip>> tripSink,
+                             Sink<TripTuple> tripSink,
                              Sink<VehicleEvent> rawVehicleEventsSink
     ) {
         this.env = env;
@@ -80,7 +80,7 @@ public class VehicleStreamingPipeline {
                 .sinkTo(this.returnsCountSink)
                 .name("returns-count-sink");
 
-        SingleOutputStreamOperator<Tuple2<String, Trip>> tripsStream =
+        SingleOutputStreamOperator<TripTuple> tripsStream =
                 stream
                         .keyBy(v -> v.id)
                         .process(new TripConstructorFunction())

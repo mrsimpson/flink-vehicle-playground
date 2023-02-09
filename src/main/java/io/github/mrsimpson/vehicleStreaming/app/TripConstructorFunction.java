@@ -2,17 +2,17 @@ package io.github.mrsimpson.vehicleStreaming.app;
 
 import io.github.mrsimpson.vehicleStreaming.util.Tracking;
 import io.github.mrsimpson.vehicleStreaming.util.Trip;
+import io.github.mrsimpson.vehicleStreaming.util.TripTuple;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 
 
-public class TripConstructorFunction extends KeyedProcessFunction<String, VehicleEvent, Tuple2<String, Trip>> {
+public class TripConstructorFunction extends KeyedProcessFunction<String, VehicleEvent, TripTuple> {
     public static final OutputTag<Error> ERROR_OUTPUT_TAG = new OutputTag<>("trips-errors"){};
 
     private transient ValueState<Trip> currentTrip;
@@ -22,7 +22,7 @@ public class TripConstructorFunction extends KeyedProcessFunction<String, Vehicl
     }
 
     @Override
-    public void processElement(VehicleEvent vehicleEvent, Context ctx, Collector<Tuple2<String, Trip>> out) throws Exception {
+    public void processElement(VehicleEvent vehicleEvent, Context ctx, Collector<TripTuple> out) throws Exception {
 
         // as state, we need to remember the vehicle's current trip
         Trip trip = currentTrip.value();
@@ -39,7 +39,7 @@ public class TripConstructorFunction extends KeyedProcessFunction<String, Vehicl
                 currentTrip.update(trip);
 
                 // publish it
-                out.collect(new Tuple2<>(ctx.getCurrentKey(), trip));
+                out.collect(new TripTuple(ctx.getCurrentKey(), trip));
                 break;
             case TRIP_END:
                 if (trip == null) {
@@ -52,7 +52,7 @@ public class TripConstructorFunction extends KeyedProcessFunction<String, Vehicl
                 currentTrip.update(null);
 
                 // publish it
-                out.collect(new Tuple2<>(ctx.getCurrentKey(), trip));
+                out.collect(new TripTuple(ctx.getCurrentKey(), trip));
                 break;
             case LOCATED:
                 trip.addWaypoint(trackingFromEvent(vehicleEvent));

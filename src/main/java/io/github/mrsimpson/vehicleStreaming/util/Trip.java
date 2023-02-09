@@ -24,8 +24,8 @@ public class Trip implements FormattablePojo {
     }
 
     public String toFormattedString(){
-        return "Trip of " + vehicleId + " started " + start +
-                (ongoing ? " ongoing" : " --> " + end);
+        return "Trip of " + vehicleId + " started " + start.toFormattedString() +
+                (ongoing ? " ongoing" : " --> " + end.toFormattedString());
     }
 
     public void terminate() {
