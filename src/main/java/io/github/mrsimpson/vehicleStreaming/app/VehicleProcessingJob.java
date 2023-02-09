@@ -3,15 +3,19 @@ package io.github.mrsimpson.vehicleStreaming.app;
 import io.github.mrsimpson.vehicleStreaming.util.StdOutSink;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEventsGenerator;
-import org.apache.flink.api.common.serialization.SerializationSchema;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.base.DeliveryGuarantee;
-import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchemaBuilder;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
+import org.apache.flink.formats.json.JsonSerializationSchema;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
-import org.apache.commons.cli.*;
 
 import java.util.Date;
 import java.util.logging.Level;
@@ -28,23 +32,24 @@ public class VehicleProcessingJob {
     static String kafkaUrl;
 
     private static <IN> Sink<IN> createSink(String identifier, String kafkaUrl) {
-        if(kafkaUrl != null && !kafkaUrl.equals("")) {
+        JsonSerializationSchema<IN> jsonFormat = new JsonSerializationSchema<>(){
+            @Override
+            public byte[] serialize(IN element) {
+                try {
+                    return this.mapper.writeValueAsBytes(element);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        if (kafkaUrl != null && !kafkaUrl.equals("")) {
             return KafkaSink.<IN>builder()
                     .setBootstrapServers(kafkaUrl)
-                    .setRecordSerializer(KafkaRecordSerializationSchema.builder()
-                            .setTopic(identifier.toLowerCase())
-                            .setValueSerializationSchema(new SerializationSchema<IN>() {
-                                @Override
-                                public void open(InitializationContext context) throws Exception {
-                                    SerializationSchema.super.open(context);
-                                }
-
-                                @Override
-                                public byte[] serialize(IN in) {
-                                    return in.toString().getBytes();
-                                }
-                            })
-                            .build()
+                    .setRecordSerializer(
+                            new KafkaRecordSerializationSchemaBuilder<>()
+                                    .setValueSerializationSchema(jsonFormat)
+                                    .setTopic(identifier.toLowerCase())
+                                    .build()
                     )
                     .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
                     .build();

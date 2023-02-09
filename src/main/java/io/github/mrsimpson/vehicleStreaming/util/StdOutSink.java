@@ -20,7 +20,10 @@ public class StdOutSink<IN> implements Sink<IN> {
         return new SinkWriter<>() {
             @Override
             public void write(Object o, Context context) {
-                System.out.println(identifier + " => " + o);
+                String text = (o instanceof FormattablePojo)
+                        ? ((FormattablePojo) o).toFormattedString()
+                        : o.toString();
+                System.out.println(identifier + " => " + text);
             }
 
             @Override

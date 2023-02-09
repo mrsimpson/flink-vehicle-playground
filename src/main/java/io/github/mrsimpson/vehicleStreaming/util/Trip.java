@@ -2,7 +2,7 @@ package io.github.mrsimpson.vehicleStreaming.util;
 
 import java.util.ArrayList;
 
-public class Trip {
+public class Trip implements FormattablePojo {
 
     public String vehicleId;
     public Tracking start;
@@ -23,8 +23,7 @@ public class Trip {
         this.end = end;
     }
 
-    @Override
-    public String toString(){
+    public String toFormattedString(){
         return "Trip of " + vehicleId + " started " + start +
                 (ongoing ? " ongoing" : " --> " + end);
     }

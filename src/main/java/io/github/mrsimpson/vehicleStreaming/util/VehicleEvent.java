@@ -2,7 +2,7 @@ package io.github.mrsimpson.vehicleStreaming.util;
 
 import java.util.Date;
 
-public class VehicleEvent {
+public class VehicleEvent implements FormattablePojo {
     public String id;
     public Date eventTime;
     public String provider;
@@ -32,9 +32,8 @@ public class VehicleEvent {
         this(id, new Date(), provider, location, type, newState);
     }
 
-    @Override
-    public String toString() {
-        return "At " + eventTime + ", " + id + " of " + provider + " emits " + type + ", is now " + newState + " at " + location;
+    public String toFormattedString() {
+        return "At " + eventTime + ", " + id + " of " + provider + " emits " + type + ", is now " + newState + " at " + location.toFormattedString();
     }
 
 }
