@@ -49,7 +49,7 @@ public class TripConstructorFunctionTest {
         // perform the actual test
         Date now = new Date();
         testHarness.processElement(new VehicleEvent("1", now, "provider_1", TestLocations.B, VehicleEventType.TRIP_END, VehicleStateType.AVAILABLE), 2);
-        assertEquals("(1,Trip of 1 started " + new Tracking(startDate, TestLocations.A).toFormattedString() + " --> " + new Tracking(startDate, TestLocations.B).toFormattedString() + ")"
+        assertEquals("(1,Trip of 1 started " + new Tracking(startDate, TestLocations.A).toFormattedString() + " --> " + new Tracking(now, TestLocations.B).toFormattedString() + ")"
                 , ((StreamRecord<TripTuple>)testHarness.getOutput().toArray()[0]).getValue().toFormattedString());
 
         testHarness.close();
