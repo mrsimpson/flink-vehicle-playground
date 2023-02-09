@@ -13,7 +13,8 @@ import org.apache.flink.util.OutputTag;
 
 
 public class TripConstructorFunction extends KeyedProcessFunction<String, VehicleEvent, TripTuple> {
-    public static final OutputTag<Error> ERROR_OUTPUT_TAG = new OutputTag<>("trips-errors"){};
+    public static final OutputTag<Error> ERROR_OUTPUT_TAG = new OutputTag<>("trips-errors") {
+    };
 
     private transient ValueState<Trip> currentTrip;
 
@@ -37,9 +38,6 @@ public class TripConstructorFunction extends KeyedProcessFunction<String, Vehicl
                 // construct a new trip and buffer it
                 trip = new Trip(vehicleEvent.id, trackingFromEvent(vehicleEvent));
                 currentTrip.update(trip);
-
-                // publish it
-                out.collect(new TripTuple(ctx.getCurrentKey(), trip));
                 break;
             case TRIP_END:
                 if (trip == null) {
@@ -51,13 +49,16 @@ public class TripConstructorFunction extends KeyedProcessFunction<String, Vehicl
                 trip.terminate(trackingFromEvent(vehicleEvent));
                 currentTrip.update(null);
 
-                // publish it
-                out.collect(new TripTuple(ctx.getCurrentKey(), trip));
                 break;
             case LOCATED:
-                trip.addWaypoint(trackingFromEvent(vehicleEvent));
+                if (trip != null) {
+                    trip.addWaypoint(trackingFromEvent(vehicleEvent));
+                }
                 break;
         }
+
+        // publish it
+        out.collect(new TripTuple(ctx.getCurrentKey(), trip));
     }
 
     @Override

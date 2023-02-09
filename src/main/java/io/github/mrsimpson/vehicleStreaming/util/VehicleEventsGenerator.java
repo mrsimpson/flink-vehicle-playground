@@ -49,22 +49,26 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
         Random rand = new Random();
 
         switch (currentState) {
-            case UNKNOWN:
+            case UNKNOWN: // initial state
                 if (rand.nextDouble() > 0.5) {
                     return VehicleEventType.TRIP_START;
                 } else {
                     return VehicleEventType.TRIP_END;
                 }
-            case ON_TRIP:
-                if (rand.nextDouble() > 0.5) {
-                    return VehicleEventType.LOCATED;
-                } else {
+            case ON_TRIP: // how likely is it a trip is going to stop (each 30s)
+                if (rand.nextDouble() > 0.95) {
                     return VehicleEventType.TRIP_END;
+                } else {
+                    return VehicleEventType.LOCATED;
                 }
-            case AVAILABLE:
-                return VehicleEventType.TRIP_START;
+            case AVAILABLE: // how likely is it a trip is going to start (each 30s)
+                if (rand.nextDouble() > 0.95) {
+                    return VehicleEventType.TRIP_START;
+                } else {
+                    return VehicleEventType.LOCATED;
+                }
             default:
-                return VehicleEventType.LOCATED;
+                return null;
         }
     }
 
@@ -94,13 +98,13 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
         for (int i = 0; i < fleetSize; i++) {
             vehicleIds[i] = "vehicle_" + (taskIdx * fleetSize + i);
             // define an area in which vehicles shall move
-            double maxLat = 50.21423506422072;
-            double minLat = 50.022714207807326;
-            lats[i] = minLat + (maxLat - minLat) * rand.nextGaussian();
+            double maxLat = 50.15369548027726;
+            double minLat = 50.099109980321764;
+            lats[i] = (minLat + maxLat)/2 + (maxLat - minLat) * (rand.nextDouble() - 0.5);
 
-            double maxLong = 8.80513526424458;
-            double minLong = 8.469365626706495;
-            longs[i] = minLong + (maxLong - minLong) * rand.nextGaussian();
+            double maxLong = 8.736120357648904;
+            double minLong = 8.604971075298;
+            longs[i] = (minLong + maxLong)/2 + (maxLong - minLong) * (rand.nextDouble() - 0.5);
 
             state[i] = VehicleStateType.UNKNOWN;
         }
@@ -113,21 +117,23 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
                 // invoke state transition
                 VehicleStateType currentState = state[i];
                 VehicleEventType eventType = determineNextEventType(currentState);
-                state[i] = determineNextState(currentState, eventType);
+                if(eventType != null) {
+                    state[i] = determineNextState(currentState, eventType);
 
-                //determine a new location
-                lats[i] += (rand.nextGaussian() - 0.5) * ONE_HUNDRED_M;
-                longs[i] += (rand.nextGaussian() - 0.5) * ONE_HUNDRED_M;
+                    //determine a new location
+                    lats[i] += (rand.nextDouble() - 0.5) * ONE_HUNDRED_M;
+                    longs[i] += (rand.nextDouble() - 0.5) * ONE_HUNDRED_M;
 
-                // emit the event
-                srcCtx.collect(new VehicleEvent(
-                        vehicleIds[i],
-                        eventTime,
-                        "provider_" + taskIdx,
-                        new Location(lats[i], longs[i]),
-                        eventType,
-                        state[i])
-                );
+                    // emit the event
+                    srcCtx.collect(new VehicleEvent(
+                            vehicleIds[i],
+                            eventTime,
+                            "provider_" + taskIdx,
+                            new Location(lats[i], longs[i]),
+                            eventType,
+                            state[i])
+                    );
+                }
             }
 
             Thread.sleep(frequency);
