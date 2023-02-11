@@ -58,7 +58,9 @@ public class TripConstructorFunction extends KeyedProcessFunction<String, Vehicl
         }
 
         // publish it
-        out.collect(new TripTuple(ctx.getCurrentKey(), trip));
+        if(trip != null){
+            out.collect(new TripTuple(ctx.getCurrentKey(), trip));
+        }
     }
 
     @Override
