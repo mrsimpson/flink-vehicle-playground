@@ -35,6 +35,9 @@ Since the artifacts in this repo have been made configurable, this allows for pa
    `tl;dr:`
    ```bash
    kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
+   ```
+   Wait for the cert manager pod to be ready!
+   ```bash
    helm repo add flink-operator-repo https://downloads.apache.org/flink/flink-kubernetes-operator-1.3.1/
    helm install flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator --namespace flink --create-namespace
    ```
@@ -67,6 +70,16 @@ Since the artifacts in this repo have been made configurable, this allows for pa
    
 _CAUTION: When deleting the Flink deployment, don't delete the pod, but delete the CRD `flinkdeployment`. 
 Else you might end up with a non-deletable CRD._
+
+## Generation only
+
+In order to simulate a real world data ingestion via Kafka, you can deploy the generation as a separate application
+Since there are multiple main classes within the same file, the local build works as above, just supply a different 
+main class when deploying it:
+
+```bash
+FLINK_VERSION=v1_16 envsubst < k8s/vehicle-generation.yaml | kubectl apply --namespace=flink -f - 
+```
 
 ## Develop it
 

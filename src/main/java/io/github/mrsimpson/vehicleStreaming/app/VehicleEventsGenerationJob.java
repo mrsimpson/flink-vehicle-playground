@@ -1,54 +1,43 @@
 package io.github.mrsimpson.vehicleStreaming.app;
 
 import io.github.mrsimpson.vehicleStreaming.util.JsonSerialization;
-import io.github.mrsimpson.vehicleStreaming.util.StdOutSink;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
 import io.github.mrsimpson.vehicleStreaming.util.VehicleEventsGenerator;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.apache.flink.api.connector.sink2.Sink;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchemaBuilder;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
-import org.apache.flink.formats.json.JsonSerializationSchema;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-public class VehicleProcessingJob {
+/**
+ * A simple generator-only job.
+ * It can be used to separate events generation from the actual pipeline processing
+ * with communication via a kafka topic.
+ * In order to achieve this, a kafka events topic needs to be configured at the processing pipeline job.
+ */
+public class VehicleEventsGenerationJob {
 
     static int fleetSize = 1;
     static int frequency = 1000;
 
     static int numberOfProviders = 1;
 
+    static String topic = "events";
+
     static String kafkaUrl;
-
-    private static <IN> Sink<IN> createSink(String identifier, String kafkaUrl) {
-        JsonSerializationSchema<IN> jsonFormat = JsonSerialization.getJsonSerializationSchema();
-        if (kafkaUrl != null && !kafkaUrl.equals("")) {
-            return KafkaSink.<IN>builder()
-                    .setBootstrapServers(kafkaUrl)
-                    .setRecordSerializer(
-                            new KafkaRecordSerializationSchemaBuilder<>()
-                                    .setValueSerializationSchema(jsonFormat)
-                                    .setTopic(identifier.toLowerCase())
-                                    .build()
-                    )
-                    .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
-                    .build();
-        }
-
-        // default: StdOut
-        return new StdOutSink<>(identifier);
-    }
 
     public static void main(String[] args) throws Exception {
         // configure Job based on arguments
@@ -57,9 +46,16 @@ public class VehicleProcessingJob {
         options.addOption("fr", "frequency", true, "How fast shall 1min event time pass");
         options.addOption("p", "providers", true, "Number of provider");
         options.addOption("k", "kafka", true, "Kafka URL");
+        options.addOption("t", "topic", true, "Kafka topic to send events to");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
+
+        if (cmd.hasOption("kafka")) {
+            kafkaUrl = cmd.getOptionValue("kafka");
+        } else {
+            throw new Exception("Kafka-URL required. This Job is made for generating events only and send the to Kafka.");
+        }
 
         if (cmd.hasOption("fleetsize")) {
             int fleetSizeArg = Integer.parseInt(cmd.getOptionValue("fleetsize"));
@@ -81,11 +77,12 @@ public class VehicleProcessingJob {
             }
         }
 
-        if (cmd.hasOption("kafka")) {
-            kafkaUrl = cmd.getOptionValue("kafka");
+        if (cmd.hasOption("topic")) {
+            topic = cmd.getOptionValue("topic");
         }
 
-        Logger.getLogger("stdout").log(new LogRecord(Level.WARNING, "Läuft " + new Date()));
+
+        Logger.getLogger("stdout").log(new LogRecord(Level.WARNING, "Generator running " + new Date()));
 
         // set up the streaming execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -94,18 +91,30 @@ public class VehicleProcessingJob {
         // ParameterTool parameters = (ParameterTool) getRuntimeContext().getExecutionConfig().getGlobalJobParameters();
         env.getConfig().setGlobalJobParameters(ParameterTool.fromArgs(args));
 
-        RichParallelSourceFunction<VehicleEvent> events = new VehicleEventsGenerator(fleetSize, frequency);
 
         // Set up the application based on the context (sources and sinks)
-        VehicleStreamingPipeline app = new VehicleStreamingPipelineBuilder()
-                .setEnv(env)
-                .setRawVehicleEventsSink(createSink("Event", kafkaUrl))
-                .setVehicleEvents(events)
-                .setRentalsCountSink(createSink("Rentals", kafkaUrl))
-                .setReturnsCountSink(createSink("Returns", kafkaUrl))
-                .setTripSink(createSink("Trips", kafkaUrl))
-                .createVehicleStreamingPipeline();
+        SingleOutputStreamOperator<VehicleEvent> stream = env
+                .addSource(new VehicleEventsGenerator(fleetSize, frequency))
+                .setParallelism(numberOfProviders)
+                .assignTimestampsAndWatermarks(
+                        WatermarkStrategy
+                                .forBoundedOutOfOrderness(Duration.ofMinutes(1))
+                                .withTimestampAssigner(new VehicleEventsTimestampAssigner())
+                );
+//                .assignTimestampsAndWatermarks(new VehicleEventsTimerAssigner()); // deprecated
+        stream
+                .name("raw-vehicle-events")
+                .sinkTo(KafkaSink.<VehicleEvent>builder()
+                        .setBootstrapServers(kafkaUrl)
+                        .setRecordSerializer(
+                                new KafkaRecordSerializationSchemaBuilder<VehicleEvent>()
+                                        .setValueSerializationSchema(JsonSerialization.getJsonSerializationSchema())
+                                        .setTopic(topic)
+                                        .build()
+                        )
+                        .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+                        .build());
 
-        app.run(numberOfProviders);
+        env.execute("Vehicle Generation");
     }
 }

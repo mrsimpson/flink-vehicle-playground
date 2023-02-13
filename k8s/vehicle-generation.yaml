@@ -1,7 +1,7 @@
 apiVersion: flink.apache.org/v1beta1
 kind: FlinkDeployment
 metadata:
-  name: vehicle-example
+  name: vehicle-generator
 spec:
   image: flink-vehicle-example:latest
   imagePullPolicy: IfNotPresent
@@ -18,8 +18,8 @@ spec:
       memory: "2048m"
       cpu: 1
   job:
-    entryClass: io.github.mrsimpson.vehicleStreaming.app.VehicleProcessingJob
+    entryClass: io.github.mrsimpson.vehicleStreaming.app.VehicleEventsGenerationJob
     jarURI: local:///opt/flink/usrlib/flink-vehicle-example.jar
-    args: [ "--fleetsize=1000", "--frequency=500", "--kafka=kafka.kafka:9092", "--source-topic=events" ]
+    args: [ "--fleetsize=1000", "--frequency=500", "--kafka=kafka.kafka:9092" ]
     parallelism: 1
     upgradeMode: stateless
