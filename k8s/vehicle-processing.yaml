@@ -1,7 +1,7 @@
 apiVersion: flink.apache.org/v1beta1
 kind: FlinkDeployment
 metadata:
-  name: vehicle-example
+  name: vehicle-processing
 spec:
   image: flink-vehicle-example:latest
   imagePullPolicy: IfNotPresent
