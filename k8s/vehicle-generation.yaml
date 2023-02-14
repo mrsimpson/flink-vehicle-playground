@@ -20,6 +20,6 @@ spec:
   job:
     entryClass: io.github.mrsimpson.vehicleStreaming.app.VehicleEventsGenerationJob
     jarURI: local:///opt/flink/usrlib/flink-vehicle-example.jar
-    args: [ "--fleetsize=1000", "--frequency=500", "--kafka=kafka.kafka:9092" ]
+    args: [ "--fleetsize=10", "--frequency=100", "--kafka=kafka.kafka:9092", "--topic=events" ]
     parallelism: 1
     upgradeMode: stateless

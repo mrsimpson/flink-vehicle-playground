@@ -10,6 +10,9 @@ public class VehicleEvent implements FormattablePojo {
     public VehicleEventType type;
     public VehicleStateType newState;
 
+    // empty default constructor required for Jackson De-Serialization
+    public VehicleEvent(){}
+
     public VehicleEvent(String id,
                         Date eventTime,
                         String provider,

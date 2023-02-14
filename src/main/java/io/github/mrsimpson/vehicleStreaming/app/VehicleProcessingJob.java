@@ -1,9 +1,6 @@
 package io.github.mrsimpson.vehicleStreaming.app;
 
-import io.github.mrsimpson.vehicleStreaming.util.JsonSerialization;
-import io.github.mrsimpson.vehicleStreaming.util.StdOutSink;
-import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
-import io.github.mrsimpson.vehicleStreaming.util.VehicleEventsGenerator;
+import io.github.mrsimpson.vehicleStreaming.util.*;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -13,11 +10,15 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchemaBuilder;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
+import org.apache.flink.formats.json.JsonDeserializationSchema;
 import org.apache.flink.formats.json.JsonSerializationSchema;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 
 import java.util.Date;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -30,6 +31,7 @@ public class VehicleProcessingJob {
     static int numberOfProviders = 1;
 
     static String kafkaUrl;
+    static String sourceTopic;
 
     private static <IN> Sink<IN> createSink(String identifier, String kafkaUrl) {
         JsonSerializationSchema<IN> jsonFormat = JsonSerialization.getJsonSerializationSchema();
@@ -50,6 +52,15 @@ public class VehicleProcessingJob {
         return new StdOutSink<>(identifier);
     }
 
+    private static FlinkKafkaConsumer<VehicleEvent> getVehicleEventsKafkaSource() {
+        Properties properties = new Properties();
+        properties.setProperty("bootstrap.servers", kafkaUrl);
+        properties.setProperty("group.id", "vehicle");
+
+
+        return new FlinkKafkaConsumer<>(sourceTopic, new JsonDeserializationSchema<>(VehicleEvent.class), properties);
+    }
+
     public static void main(String[] args) throws Exception {
         // configure Job based on arguments
         Options options = new Options();
@@ -57,6 +68,7 @@ public class VehicleProcessingJob {
         options.addOption("fr", "frequency", true, "How fast shall 1min event time pass");
         options.addOption("p", "providers", true, "Number of provider");
         options.addOption("k", "kafka", true, "Kafka URL");
+        options.addOption("st", "sourcetopic", true, "Kafka source topic");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
@@ -85,6 +97,15 @@ public class VehicleProcessingJob {
             kafkaUrl = cmd.getOptionValue("kafka");
         }
 
+        Sink<VehicleEvent> rawEventsSink;
+        if (cmd.hasOption("sourcetopic")) {
+            sourceTopic = cmd.getOptionValue("sourcetopic");
+            rawEventsSink = new NullSink<>();
+        } else {
+            createSink("Events", kafkaUrl);
+            rawEventsSink = createSink("Events", kafkaUrl);
+        }
+
         Logger.getLogger("stdout").log(new LogRecord(Level.WARNING, "Läuft " + new Date()));
 
         // set up the streaming execution environment
@@ -94,12 +115,17 @@ public class VehicleProcessingJob {
         // ParameterTool parameters = (ParameterTool) getRuntimeContext().getExecutionConfig().getGlobalJobParameters();
         env.getConfig().setGlobalJobParameters(ParameterTool.fromArgs(args));
 
-        RichParallelSourceFunction<VehicleEvent> events = new VehicleEventsGenerator(fleetSize, frequency);
+        RichParallelSourceFunction<VehicleEvent> events;
+        if(!Objects.equals(sourceTopic, "")) {
+            events = getVehicleEventsKafkaSource();
+        } else {
+            events = new VehicleEventsGenerator(fleetSize, frequency);
+        }
 
         // Set up the application based on the context (sources and sinks)
         VehicleStreamingPipeline app = new VehicleStreamingPipelineBuilder()
                 .setEnv(env)
-                .setRawVehicleEventsSink(createSink("Event", kafkaUrl))
+                .setRawVehicleEventsSink(rawEventsSink)
                 .setVehicleEvents(events)
                 .setRentalsCountSink(createSink("Rentals", kafkaUrl))
                 .setReturnsCountSink(createSink("Returns", kafkaUrl))
