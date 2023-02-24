@@ -1,15 +1,12 @@
 package io.github.mrsimpson.vehicleStreaming.app;
 
 import io.github.mrsimpson.vehicleStreaming.util.*;
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
-
-import java.time.Duration;
 
 /**
  * This pipeline defines the Flink application:
@@ -48,11 +45,7 @@ public class VehicleStreamingPipeline {
         SingleOutputStreamOperator<VehicleEvent> stream = this.env
                 .addSource(this.vehicleEvents)
                 .setParallelism(numberOfProviders)
-                .assignTimestampsAndWatermarks(
-                        WatermarkStrategy
-                            .forBoundedOutOfOrderness(Duration.ofMinutes(1))
-                                .withTimestampAssigner(new VehicleEventsTimestampAssigner())
-                );
+                .assignTimestampsAndWatermarks(VehicleEventsWatermarkStrategy.withOutOfOrderSeconds(30));
 //                .assignTimestampsAndWatermarks(new VehicleEventsTimerAssigner()); // deprecated
         stream
                 .name("raw-vehicle-events")

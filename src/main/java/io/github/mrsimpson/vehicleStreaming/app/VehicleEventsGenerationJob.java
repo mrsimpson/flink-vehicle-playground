@@ -7,16 +7,13 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchemaBuilder;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
-import java.time.Duration;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -96,11 +93,7 @@ public class VehicleEventsGenerationJob {
         SingleOutputStreamOperator<VehicleEvent> stream = env
                 .addSource(new VehicleEventsGenerator(fleetSize, frequency))
                 .setParallelism(numberOfProviders)
-                .assignTimestampsAndWatermarks(
-                        WatermarkStrategy
-                                .forBoundedOutOfOrderness(Duration.ofMinutes(1))
-                                .withTimestampAssigner(new VehicleEventsTimestampAssigner())
-                );
+                .assignTimestampsAndWatermarks(VehicleEventsWatermarkStrategy.withOutOfOrderSeconds(30));
 //                .assignTimestampsAndWatermarks(new VehicleEventsTimerAssigner()); // deprecated
         stream
                 .name("raw-vehicle-events")

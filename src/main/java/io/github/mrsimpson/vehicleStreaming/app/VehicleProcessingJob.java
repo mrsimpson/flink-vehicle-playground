@@ -116,7 +116,7 @@ public class VehicleProcessingJob {
         env.getConfig().setGlobalJobParameters(ParameterTool.fromArgs(args));
 
         RichParallelSourceFunction<VehicleEvent> events;
-        if(!Objects.equals(sourceTopic, "")) {
+        if(!Objects.equals(sourceTopic, null)) {
             events = getVehicleEventsKafkaSource();
         } else {
             events = new VehicleEventsGenerator(fleetSize, frequency);
