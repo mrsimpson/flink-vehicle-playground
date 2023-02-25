@@ -90,6 +90,36 @@ public class ParkingIntervalConstructorFunction extends KeyedProcessFunction<Str
     }
 
     @Override
+    public void onTimer(long timestamp, KeyedProcessFunction<String, VehicleEvent, ParkingIntervalTuple>.OnTimerContext ctx, Collector<ParkingIntervalTuple> out) throws Exception {
+        ParkingInterval current = previousInterval.value();
+
+        //TODO: Re-Use code from the other two cases above
+        //terminate the current one and start a new interval
+        current.terminate(new Date(ctx.timestamp()));
+        // remove potential timers which have been created earlier
+        ctx.timerService().deleteEventTimeTimer(current.scheduledEnd.getTime());
+
+        // publish it
+        out.collect(new ParkingIntervalTuple(ctx.getCurrentKey(), current));
+
+        current = new ParkingInterval(
+                current.id,
+                current.provider,
+                current.location,
+                current.scheduledEnd, // as new start time
+                current.resolution);
+
+        // schedule a timer to complete the current interval once the current resolution interval is over
+        current.scheduleEnd(getNextIntervalEnd(current.start, this.resolution));
+        ctx.timerService().registerEventTimeTimer(current.scheduledEnd.getTime());
+
+        // publish it
+        out.collect(new ParkingIntervalTuple(ctx.getCurrentKey(), current));
+
+        previousInterval.update(current);
+    }
+
+    @Override
     public void open(Configuration parameters) {
         ValueStateDescriptor<ParkingInterval> valueStateDescriptor = new ValueStateDescriptor<>("previousInterval", ParkingInterval.class);
         previousInterval = getRuntimeContext().getState(valueStateDescriptor);
