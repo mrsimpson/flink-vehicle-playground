@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Fast Single VehicleProcessingJob" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="io.github.mrsimpson.vehicleStreaming.app.VehicleProcessingJob" />
+    <module name="flink-vehicle-example" />
+    <option name="PROGRAM_PARAMETERS" value="--fleetsize=1 --frequency=10" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

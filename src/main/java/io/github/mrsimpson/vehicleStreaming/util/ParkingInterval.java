@@ -17,11 +17,12 @@ public class ParkingInterval implements FormattablePojo {
     public ParkingInterval() {
     }
 
-    public ParkingInterval(String id, String provider, Location location, Date start) {
+    public ParkingInterval(String id, String provider, Location location, Date start, Duration resolution) {
         this.id = id;
         this.provider = provider;
         this.location = location;
         this.start = start;
+        this.resolution = resolution;
     }
 
     public void terminate(Date end) {

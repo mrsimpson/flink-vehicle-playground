@@ -33,7 +33,8 @@ public class ParkingIntervalConstructorFunction extends KeyedProcessFunction<Str
 
     // helpers
     static Date getNextIntervalEnd(Date startDate, Duration resolution) {
-        if(resolution.compareTo(Duration.ofDays(1)) >= 0) throw new Error("Only resolutions shorter than a day possible");
+        if (resolution.compareTo(Duration.ofDays(1)) >= 0)
+            throw new Error("Only resolutions shorter than a day possible");
         Date startOfDay = (Date) startDate.clone();
         startOfDay.setTime(0);
 
@@ -58,31 +59,34 @@ public class ParkingIntervalConstructorFunction extends KeyedProcessFunction<Str
 
                 // complete the parking interval
                 current.terminate(vehicleEvent.eventTime);
-                previousInterval.update(current);
-
                 // remove potential timers which have been created earlier
                 ctx.timerService().deleteEventTimeTimer(current.scheduledEnd.getTime());
+
+                // publish it
+                out.collect(new ParkingIntervalTuple(ctx.getCurrentKey(), current));
+                previousInterval.update(null);
+
                 break;
             case TRIP_END:
                 current = new ParkingInterval(
                         vehicleEvent.id,
                         vehicleEvent.provider,
                         vehicleEvent.location,
-                        vehicleEvent.eventTime
-                );
+                        vehicleEvent.eventTime,
+                        this.resolution);
 
                 // schedule a timer to complete the current interval once the current resolution interval is over
                 current.scheduleEnd(getNextIntervalEnd(current.start, this.resolution));
                 ctx.timerService().registerEventTimeTimer(current.scheduledEnd.getTime());
+
+                // publish it
+                out.collect(new ParkingIntervalTuple(ctx.getCurrentKey(), current));
 
                 previousInterval.update(current);
                 break;
             default:
                 return; //ignore all other events
         }
-
-        // publish it
-        out.collect(new ParkingIntervalTuple(ctx.getCurrentKey(), current));
     }
 
     @Override

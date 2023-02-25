@@ -3,10 +3,13 @@ package io.github.mrsimpson.vehicleStreaming.app;
 import io.github.mrsimpson.vehicleStreaming.util.*;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSink;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
+
+import java.time.Duration;
 
 /**
  * This pipeline defines the Flink application:
@@ -19,6 +22,7 @@ public class VehicleStreamingPipeline {
     private final Sink<Tuple2<String, Integer>> rentalsCountSink;
     private final Sink<Tuple2<String, Integer>> returnsCountSink;
     private final Sink<TripTuple> tripSink;
+    private final Sink<ParkingIntervalTuple> parkingSink;
 
     private final Sink<VehicleEvent> rawVehicleEventsSink;
     private final Sink<Error> errorStreamSink;
@@ -29,10 +33,12 @@ public class VehicleStreamingPipeline {
                              Sink<Tuple2<String, Integer>> rentalsCountSink,
                              Sink<Tuple2<String, Integer>> returnsCountSink,
                              Sink<TripTuple> tripSink,
+                             Sink<ParkingIntervalTuple> parkingSink,
                              Sink<VehicleEvent> rawVehicleEventsSink
     ) {
         this.env = env;
         this.vehicleEvents = vehicleEvents;
+        this.parkingSink = (parkingSink != null ) ? parkingSink : new NullSink<>();
         this.rawVehicleEventsSink = (rawVehicleEventsSink != null) ? rawVehicleEventsSink : new NullSink<>();
         this.rentalsCountSink = (rentalsCountSink != null) ? rentalsCountSink : new NullSink<>();
         this.returnsCountSink = (returnsCountSink != null) ? returnsCountSink : new NullSink<>();
@@ -73,9 +79,13 @@ public class VehicleStreamingPipeline {
                 .sinkTo(this.returnsCountSink)
                 .name("returns-count-sink");
 
+        //// Everything related to individual vehicles
+        KeyedStream<VehicleEvent, String> vehicleStream = stream
+                .keyBy(v -> v.id);
+
+        // TRIPS
         SingleOutputStreamOperator<TripTuple> tripsStream =
-                stream
-                        .keyBy(v -> v.id)
+                vehicleStream
                         .process(new TripConstructorFunction())
                         .name("trips-stream");
 
@@ -88,6 +98,14 @@ public class VehicleStreamingPipeline {
                 .getSideOutput(TripConstructorFunction.ERROR_OUTPUT_TAG)
                 .sinkTo(this.errorStreamSink)
                 .name("error-stream-sink");
+
+        // PARKING and AVAILABILITY
+        SingleOutputStreamOperator<ParkingIntervalTuple> parkingIntervalStream =
+                vehicleStream
+                        .process(new ParkingIntervalConstructorFunction(Duration.ofMinutes(10)))
+                        .name("parking-stream");
+        parkingIntervalStream
+                .sinkTo(this.parkingSink);
 
         // Execute the pipeline
         this.env.execute("Vehicle Events processing");
