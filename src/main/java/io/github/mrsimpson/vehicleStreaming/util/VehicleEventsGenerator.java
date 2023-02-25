@@ -120,9 +120,11 @@ public class VehicleEventsGenerator extends RichParallelSourceFunction<VehicleEv
                 if(eventType != null) {
                     state[i] = determineNextState(currentState, eventType);
 
-                    //determine a new location
-                    lats[i] += (rand.nextDouble() - 0.5) * ONE_HUNDRED_M;
-                    longs[i] += (rand.nextDouble() - 0.5) * ONE_HUNDRED_M;
+                    //determine a new location unless it's parked
+                    if(state[i] != VehicleStateType.AVAILABLE) {
+                        lats[i] += (rand.nextDouble() - 0.5) * ONE_HUNDRED_M;
+                        longs[i] += (rand.nextDouble() - 0.5) * ONE_HUNDRED_M;
+                    }
 
                     // emit the event
                     srcCtx.collect(new VehicleEvent(
