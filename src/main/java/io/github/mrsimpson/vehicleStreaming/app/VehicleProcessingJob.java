@@ -12,6 +12,7 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchemaBuild
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.formats.json.JsonDeserializationSchema;
 import org.apache.flink.formats.json.JsonSerializationSchema;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
@@ -22,6 +23,14 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+
+class TimeEnabledJsonSerializationSchema<T> extends JsonSerializationSchema<T> {
+    @Override
+    public void open(InitializationContext context) {
+        super.open(context);
+        this.mapper.registerModule(new JavaTimeModule());
+    }
+}
 
 public class VehicleProcessingJob {
 
@@ -34,7 +43,7 @@ public class VehicleProcessingJob {
     static String sourceTopic;
 
     private static <IN> Sink<IN> createSink(String identifier, String kafkaUrl) {
-        JsonSerializationSchema<IN> jsonFormat = JsonSerialization.getJsonSerializationSchema();
+        JsonSerializationSchema<IN> jsonFormat = new TimeEnabledJsonSerializationSchema<>();
         if (kafkaUrl != null && !kafkaUrl.equals("")) {
             return KafkaSink.<IN>builder()
                     .setBootstrapServers(kafkaUrl)
