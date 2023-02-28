@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Slow Vehicle Generation to kafka" type="Application" factoryName="Application">
+  <configuration default="false" name="FAST Vehicle Generation to kafka" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="io.github.mrsimpson.vehicleStreaming.app.VehicleEventsGenerationJob" />
     <module name="flink-vehicle-example" />
-    <option name="PROGRAM_PARAMETERS" value="--fleetsize=2 --frequency=1000 --kafka=localhost:9092" />
+    <option name="PROGRAM_PARAMETERS" value="--fleetsize=20 --frequency=10  --providers=3 --kafka=localhost:9092" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
