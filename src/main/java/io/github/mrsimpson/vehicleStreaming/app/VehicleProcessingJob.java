@@ -140,6 +140,7 @@ public class VehicleProcessingJob {
                 .setReturnsCountSink(createSink("Returns", kafkaUrl))
                 .setTripSink(createSink("Trips", kafkaUrl))
                 .setParkingSink(createSink("Parkings", kafkaUrl))
+                .setAvailabilitySink(createSink("Availability", kafkaUrl))
                 .createVehicleStreamingPipeline();
 
         app.run(numberOfProviders);

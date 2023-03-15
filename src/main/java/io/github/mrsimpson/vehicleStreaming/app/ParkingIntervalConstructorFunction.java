@@ -41,7 +41,7 @@ public class ParkingIntervalConstructorFunction extends KeyedProcessFunction<Str
         Duration sinceToday = Duration.between(startOfDay.toInstant(), startDate.toInstant());
         long passedIntervalsToday = sinceToday.dividedBy(resolution);
 
-        return new Date(startOfDay.toInstant().plus(resolution.multipliedBy(passedIntervalsToday + 1)).toEpochMilli());//  Date.from(nextFutureDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        return new Date(startOfDay.toInstant().plus(resolution.multipliedBy(passedIntervalsToday + 1)).toEpochMilli());
     }
 
 
