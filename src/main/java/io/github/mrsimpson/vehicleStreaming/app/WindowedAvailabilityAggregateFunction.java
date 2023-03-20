@@ -4,11 +4,8 @@ import io.github.mrsimpson.vehicleStreaming.util.ParkingInterval;
 import io.github.mrsimpson.vehicleStreaming.util.ParkingIntervalTuple;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple4;
 
-import java.time.Instant;
-
-public class WindowedAvailabilityAggregateFunction implements AggregateFunction<ParkingIntervalTuple, Tuple4<String, Long, Instant, Instant>, Tuple2<String, Double>> {
+public class WindowedAvailabilityAggregateFunction implements AggregateFunction<ParkingIntervalTuple, Tuple2<String, Long>, Tuple2<String, Long>> {
     /**
      * The accumulator itself is stateless, you can consider this method equivalent to
      * the last parameter of a Javascript reduce() function in which the "state", which is passed from iteration
@@ -20,8 +17,8 @@ public class WindowedAvailabilityAggregateFunction implements AggregateFunction<
      * If we used a generic ProcessWindowFunction, we could get this from the context.
      */
     @Override
-    public Tuple4<String, Long, Instant, Instant> createAccumulator() {
-        return new Tuple4<String, Long, Instant, Instant>("", 0L, null, null);
+    public Tuple2<String, Long> createAccumulator() {
+        return new Tuple2<>("", 0L);
     }
 
     /**
@@ -31,14 +28,11 @@ public class WindowedAvailabilityAggregateFunction implements AggregateFunction<
      * @return the updated availability for vehicles of this provider within the window
      */
     @Override
-    public Tuple4<String, Long, Instant, Instant> add(ParkingIntervalTuple parkingIntervalTuple, Tuple4<String, Long, Instant, Instant> acc) {
+    public Tuple2<String, Long> add(ParkingIntervalTuple parkingIntervalTuple, Tuple2<String, Long> acc) {
         ParkingInterval parkingInterval = parkingIntervalTuple.f1;
-        Instant start = Instant.from(parkingInterval.resolution.subtractFrom(parkingInterval.scheduledEnd.toInstant()));
-        return new Tuple4<>(
+        return new Tuple2<>(
                 parkingInterval.provider,
-                parkingInterval.getParkingDurationMillis(),
-                (acc.f2 != null && acc.f2.isBefore(start)) ? acc.f2 : start,
-                (acc.f3 != null && acc.f3.isAfter(parkingInterval.scheduledEnd.toInstant()) ) ? acc.f3 : parkingInterval.scheduledEnd.toInstant()
+                acc.f1 + parkingInterval.getParkingDurationMillis()
         );
     }
 
@@ -48,9 +42,9 @@ public class WindowedAvailabilityAggregateFunction implements AggregateFunction<
      * @return the total available ratio based on the time window's size
      */
     @Override
-    public Tuple2<String, Double> getResult(Tuple4<String, Long, Instant, Instant> acc) {
+    public Tuple2<String, Long> getResult(Tuple2<String, Long> acc) {
 
-        return new Tuple2<>(acc.f0, acc.f1.doubleValue() / (acc.f3.toEpochMilli() - acc.f2.toEpochMilli()) );
+        return new Tuple2<>(acc.f0, acc.f1);
     }
 
     /**
@@ -60,12 +54,10 @@ public class WindowedAvailabilityAggregateFunction implements AggregateFunction<
      * @return The merged state
      */
     @Override
-    public Tuple4<String, Long, Instant, Instant> merge(Tuple4<String, Long, Instant, Instant> acc1, Tuple4<String, Long, Instant, Instant> acc2) {
-        return new Tuple4<>(
+    public Tuple2<String, Long> merge(Tuple2<String, Long> acc1, Tuple2<String, Long> acc2) {
+        return new Tuple2<>(
                 acc1.f0,
-                acc1.f1 + acc2.f1,
-                (acc1.f2 != null && acc1.f2.isBefore(acc2.f2)) ? acc1.f2 : acc2.f2,
-                (acc1.f3 != null && acc1.f3.isAfter(acc2.f3)) ? acc1.f3 : acc2.f3
+                acc1.f1 + acc2.f1
         );
     }
 }

@@ -13,7 +13,7 @@ public class VehicleStreamingPipelineBuilder {
     private RichParallelSourceFunction<VehicleEvent> vehicleEvents;
     private Sink<Tuple2<String, Integer>> rentalsCountSink;
     private Sink<Tuple2<String, Integer>> returnsCountSink;
-    private Sink<Tuple2<String, Double>> availabilitySink;
+    private Sink<ProviderWindowedAvailability> availabilitySink;
     private Sink<VehicleEvent> rawVehicleEventsSink;
     private Sink<TripTuple> tripSink;
     private Sink<ParkingIntervalTuple> parkingSink;
@@ -33,7 +33,7 @@ public class VehicleStreamingPipelineBuilder {
         return this;
     }
 
-    public VehicleStreamingPipelineBuilder setAvailabilitySink(Sink<Tuple2<String, Double>> availabilitySink) {
+    public VehicleStreamingPipelineBuilder setAvailabilitySink(Sink<ProviderWindowedAvailability> availabilitySink) {
         this.availabilitySink = availabilitySink;
         return this;
     }

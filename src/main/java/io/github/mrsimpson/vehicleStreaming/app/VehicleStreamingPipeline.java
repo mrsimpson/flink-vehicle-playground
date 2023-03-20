@@ -21,7 +21,7 @@ public class VehicleStreamingPipeline {
     private final RichParallelSourceFunction<VehicleEvent> vehicleEvents;
     private final Sink<Tuple2<String, Integer>> rentalsCountSink;
     private final Sink<Tuple2<String, Integer>> returnsCountSink;
-    private final Sink<Tuple2<String, Double>> availabilitySink;
+    private final Sink<ProviderWindowedAvailability> availabilitySink;
     private final Sink<TripTuple> tripSink;
     private final Sink<ParkingIntervalTuple> parkingSink;
 
@@ -35,7 +35,7 @@ public class VehicleStreamingPipeline {
                              Sink<Tuple2<String, Integer>> returnsCountSink,
                              Sink<TripTuple> tripSink,
                              Sink<ParkingIntervalTuple> parkingSink,
-                             Sink<Tuple2<String, Double>> availabilitySink,
+                             Sink<ProviderWindowedAvailability> availabilitySink,
                              Sink<VehicleEvent> rawVehicleEventsSink
     ) {
         this.env = env;
@@ -110,10 +110,12 @@ public class VehicleStreamingPipeline {
         parkingIntervalStream
                 .sinkTo(this.parkingSink);
 
-        SingleOutputStreamOperator<Tuple2<String, Double>> hourlyAvailabilityStream = parkingIntervalStream
+        SingleOutputStreamOperator<ProviderWindowedAvailability> hourlyAvailabilityStream = parkingIntervalStream
                 .keyBy(parkingIntervalTuple -> parkingIntervalTuple.f1.provider)
                 .window(new HourlyTimeWindowAssigner<>())
-                .aggregate(new WindowedAvailabilityAggregateFunction())
+                .aggregate(
+                        new WindowedAvailabilityAggregateFunction(),
+                        new WindowedAvailabilityProcessFunction())
                 .name("hourly-availability");
         hourlyAvailabilityStream
                 .sinkTo(this.availabilitySink);
