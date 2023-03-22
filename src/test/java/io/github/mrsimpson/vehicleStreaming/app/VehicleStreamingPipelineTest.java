@@ -33,7 +33,7 @@ public class VehicleStreamingPipelineTest {
 
         @Override
         public SinkWriter<Tuple2<String, Integer>> createWriter(InitContext initContext) {
-            return new SinkWriter<>(){
+            return new SinkWriter<>() {
 
                 @Override
                 public void close() {
@@ -68,6 +68,11 @@ public class VehicleStreamingPipelineTest {
                 ctx.collect(new VehicleEvent("1", "provider_1", TestLocations.D, VehicleEventType.LOCATED, VehicleStateType.ON_TRIP));
                 ctx.collect(new VehicleEvent("2", "provider_1", TestLocations.C, VehicleEventType.TRIP_END, VehicleStateType.AVAILABLE));
                 ctx.collect(new VehicleEvent("1", "provider_1", TestLocations.E, VehicleEventType.TRIP_END, VehicleStateType.AVAILABLE));
+
+                // emit two additional TRIP-START-Events in order to clear timers set up for ongoing parkings.
+                // This is definitely not how it's supposed to be, but I found not other option how to cancel an existing timer
+                ctx.collect(new VehicleEvent("2", "provider_1", TestLocations.C, VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP));
+                ctx.collect(new VehicleEvent("1", "provider_1", TestLocations.E, VehicleEventType.TRIP_START, VehicleStateType.ON_TRIP));
             }
 
             @Override
@@ -81,7 +86,8 @@ public class VehicleStreamingPipelineTest {
 
         // Invoke function under test
         VehicleStreamingPipeline app = new VehicleStreamingPipelineBuilder()
-                .setEnv(env).setVehicleEvents(events)
+                .setEnv(env)
+                .setVehicleEvents(events)
                 .setRentalsCountSink(new CountSinkMock())
                 .setRawVehicleEventsSink(new NullSink<>())
                 .createVehicleStreamingPipeline();
@@ -89,7 +95,7 @@ public class VehicleStreamingPipelineTest {
 
         // Validate result
         List<Tuple2<String, Integer>> result = CountSinkMock.getCollectedElements();
-        Assert.assertEquals(3, result.size()); // total rentals emitted – ignores the key!
-        Assert.assertTrue(result.contains(Tuple2.of("provider_1", 3)));
+        Assert.assertEquals(5, result.size()); // total rentals emitted – ignores the key!
+        Assert.assertTrue(result.contains(Tuple2.of("provider_1", 5)));
     }
 }
