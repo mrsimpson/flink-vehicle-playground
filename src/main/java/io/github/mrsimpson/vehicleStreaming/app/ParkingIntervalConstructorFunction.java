@@ -47,7 +47,6 @@ public class ParkingIntervalConstructorFunction extends KeyedProcessFunction<Str
 
     @Override
     public void processElement(VehicleEvent vehicleEvent, Context ctx, Collector<ParkingIntervalTuple> out) throws Exception {
-
         // as state, we need to remember the vehicle's previous interval
         ParkingInterval current = previousInterval.value();
 

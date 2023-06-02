@@ -10,6 +10,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
+import org.slf4j.LoggerFactory;
 
 
 public class TripConstructorFunction extends KeyedProcessFunction<String, VehicleEvent, TripTuple> {
@@ -60,6 +61,7 @@ public class TripConstructorFunction extends KeyedProcessFunction<String, Vehicl
         // publish it
         if(trip != null){
             out.collect(new TripTuple(ctx.getCurrentKey(), trip));
+            LoggerFactory.getLogger("TRIP").info("trip erzeugt");
         }
     }
 

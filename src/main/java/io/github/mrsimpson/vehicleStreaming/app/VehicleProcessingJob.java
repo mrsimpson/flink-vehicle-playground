@@ -1,12 +1,16 @@
 package io.github.mrsimpson.vehicleStreaming.app;
 
-import io.github.mrsimpson.vehicleStreaming.util.*;
+import io.github.mrsimpson.vehicleStreaming.util.NullSink;
+import io.github.mrsimpson.vehicleStreaming.util.StdOutSink;
+import io.github.mrsimpson.vehicleStreaming.util.VehicleEvent;
+import io.github.mrsimpson.vehicleStreaming.util.VehicleEventsGenerator;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchemaBuilder;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
@@ -16,13 +20,11 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.datatype.jsr310.Ja
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 
 class TimeEnabledJsonSerializationSchema<T> extends JsonSerializationSchema<T> {
     @Override
@@ -115,17 +117,19 @@ public class VehicleProcessingJob {
             rawEventsSink = createSink("Events", kafkaUrl);
         }
 
-        Logger.getLogger("stdout").log(new LogRecord(Level.WARNING, "Läuft " + new Date()));
+        LoggerFactory.getLogger("JOB").info("Läuft " + new Date());
 
         // set up the streaming execution environment
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(
+                new Configuration()
+        );
 
         // propagate the params, so they can be accessed later using
         // ParameterTool parameters = (ParameterTool) getRuntimeContext().getExecutionConfig().getGlobalJobParameters();
         env.getConfig().setGlobalJobParameters(ParameterTool.fromArgs(args));
 
         RichParallelSourceFunction<VehicleEvent> events;
-        if(!Objects.equals(sourceTopic, null)) {
+        if (!Objects.equals(sourceTopic, null)) {
             events = getVehicleEventsKafkaSource();
         } else {
             events = new VehicleEventsGenerator(fleetSize, frequency);
