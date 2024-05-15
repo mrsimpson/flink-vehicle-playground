@@ -3,7 +3,6 @@
       <option name="MAIN_CLASS_NAME" value="io.github.mrsimpson.vehicleStreaming.app.VehicleProcessingJob"/>
       <module name="flink-vehicle-example"/>
       <option name="PROGRAM_PARAMETERS" value="--fleetsize=1 --frequency=2000"/>
-      <option name="VM_PARAMETERS" value="-Dlog4j2.level=INFO"/>
       <extension name="software.aws.toolkits.jetbrains.core.execution.JavaAwsConnectionExtension">
           <option name="credential"/>
           <option name="region"/>

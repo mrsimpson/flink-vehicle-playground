@@ -117,7 +117,6 @@ public class ParkingIntervalConstructorFunction extends KeyedProcessFunction<Str
 
         previousInterval.update(current);
     }
-
     @Override
     public void open(Configuration parameters) {
         ValueStateDescriptor<ParkingInterval> valueStateDescriptor = new ValueStateDescriptor<>("previousInterval", ParkingInterval.class);

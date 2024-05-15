@@ -55,7 +55,7 @@ public class VehicleStreamingPipeline {
                 .addSource(this.vehicleEvents)
                 .setParallelism(numberOfProviders)
                 .assignTimestampsAndWatermarks(VehicleEventsWatermarkStrategy.withOutOfOrderSeconds(30));
-//                .assignTimestampsAndWatermarks(new VehicleEventsTimerAssigner()); // deprecated
+
         stream
                 .name("raw-vehicle-events")
                 .sinkTo(this.rawVehicleEventsSink);
